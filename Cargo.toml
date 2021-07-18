@@ -19,44 +19,40 @@ name    = "bigint"
 harness = false
 name    = "bigrational"
 
-# [[bench]]
-# harness = false
-# name    = "factorial"
+[[bench]]
+harness = false
+name    = "factorial"
 
-# [[bench]]
-# harness = false
-# name    = "gcd"
+[[bench]]
+harness = false
+name    = "gcd"
 
-# [[bench]]
-# harness = false
-# name    = "roots"
-
-# [[bench]]
-# harness = false
-# name    = "shootout-pidigits"
+[[bench]]
+harness = false
+name    = "roots"
 
 [dependencies]
 
-[dev-dependencies]
-criterion = "0.3"
-
-[dev-dependencies.num-integer]
+[dependencies.num-integer]
 version  = "0.1.44"
 features = ["i128"]
 
-[dev-dependencies.num-bigint]
+[dependencies.num-bigint]
 version  = "0.4.0"
 features = ["rand"]
 
-[dev-dependencies.num-rational]
+[dependencies.num-rational]
 version = "0.4.0"
 #git     = "https://github.com/Lemmih/num-rational"
 #branch  = "fewer-clones"
 
-[dev-dependencies.num-traits]
+[dependencies.num-traits]
 version  = "0.2.14"
 features = ["i128"]
 
-[dev-dependencies.rand]
+[dependencies.rand]
 version          = "0.8.4"
 default-features = false
+
+[dev-dependencies]
+criterion = "0.3"

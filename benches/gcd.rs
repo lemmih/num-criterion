@@ -1,12 +1,8 @@
-#![feature(test)]
-#![cfg(feature = "rand")]
-
-extern crate test;
+use criterion::{criterion_group, criterion_main, Bencher, Criterion};
 
 use num_bigint::{BigUint, RandBigInt};
 use num_integer::Integer;
 use num_traits::Zero;
-use test::Bencher;
 
 mod rng;
 use rng::get_rng;
@@ -33,44 +29,19 @@ fn euclid(x: &BigUint, y: &BigUint) -> BigUint {
     n
 }
 
-#[bench]
-fn gcd_euclid_0064(b: &mut Bencher) {
-    bench(b, 64, euclid);
+fn criterion_benchmark(c: &mut Criterion) {
+    c.bench_function("gcd_euclid_0064", |b| bench(b, 64, euclid));
+    c.bench_function("gcd_euclid_0256", |b| bench(b, 256, euclid));
+    c.bench_function("gcd_euclid_1024", |b| bench(b, 1024, euclid));
+    c.bench_function("gcd_euclid_4096", |b| bench(b, 4096, euclid));
+
+    // Integer for BigUint now uses Stein for gcd
+
+    c.bench_function("gcd_stein_0064", |b| bench(b, 64, BigUint::gcd));
+    c.bench_function("gcd_stein_0256", |b| bench(b, 256, BigUint::gcd));
+    c.bench_function("gcd_stein_1024", |b| bench(b, 1024, BigUint::gcd));
+    c.bench_function("gcd_stein_4096", |b| bench(b, 4096, BigUint::gcd));
 }
 
-#[bench]
-fn gcd_euclid_0256(b: &mut Bencher) {
-    bench(b, 256, euclid);
-}
-
-#[bench]
-fn gcd_euclid_1024(b: &mut Bencher) {
-    bench(b, 1024, euclid);
-}
-
-#[bench]
-fn gcd_euclid_4096(b: &mut Bencher) {
-    bench(b, 4096, euclid);
-}
-
-// Integer for BigUint now uses Stein for gcd
-
-#[bench]
-fn gcd_stein_0064(b: &mut Bencher) {
-    bench(b, 64, BigUint::gcd);
-}
-
-#[bench]
-fn gcd_stein_0256(b: &mut Bencher) {
-    bench(b, 256, BigUint::gcd);
-}
-
-#[bench]
-fn gcd_stein_1024(b: &mut Bencher) {
-    bench(b, 1024, BigUint::gcd);
-}
-
-#[bench]
-fn gcd_stein_4096(b: &mut Bencher) {
-    bench(b, 4096, BigUint::gcd);
-}
+criterion_group!(benches, criterion_benchmark);
+criterion_main!(benches);
