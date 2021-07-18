@@ -1,0 +1,62 @@
+[package]
+description = "Criterion benchmarks for the num crates"
+#keywords = ["mathematics", "numerics", "bignum"]
+#categories = [ "algorithms", "data-structures", "science" ]
+license     = "MIT OR Apache-2.0"
+name        = "num-criterion"
+repository  = "https://github.com/Lemmih/num-criterion"
+version     = "0.1.0"
+readme      = "README.md"
+exclude     = ["/.github/*"]
+edition     = "2018"
+autobenches = false
+
+[[bench]]
+harness = false
+name    = "bigint"
+
+[[bench]]
+harness = false
+name    = "bigrational"
+
+# [[bench]]
+# harness = false
+# name    = "factorial"
+
+# [[bench]]
+# harness = false
+# name    = "gcd"
+
+# [[bench]]
+# harness = false
+# name    = "roots"
+
+# [[bench]]
+# harness = false
+# name    = "shootout-pidigits"
+
+[dependencies]
+
+[dev-dependencies]
+criterion = "0.3"
+
+[dev-dependencies.num-integer]
+version  = "0.1.44"
+features = ["i128"]
+
+[dev-dependencies.num-bigint]
+version  = "0.4.0"
+features = ["rand"]
+
+[dev-dependencies.num-rational]
+version = "0.4.0"
+#git     = "https://github.com/Lemmih/num-rational"
+#branch  = "fewer-clones"
+
+[dev-dependencies.num-traits]
+version  = "0.2.14"
+features = ["i128"]
+
+[dev-dependencies.rand]
+version          = "0.8.4"
+default-features = false
