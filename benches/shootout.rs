@@ -142,6 +142,12 @@ fn ramp(
 // Groups
 
 fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
+    if bits == 64 {
+        uint!(group, bits, u64, |x: u64, y: u64| x.gcd(&y));
+    }
+    if bits == 128 {
+        uint!(group, bits, u128, |x: u128, y: u128| x.gcd(&y));
+    }
     bigint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x.gcd_ref(y)));
