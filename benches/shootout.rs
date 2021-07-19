@@ -37,9 +37,7 @@ macro_rules! uint {
     ( $group: ident, $bits: ident, $ty:ty, $run: expr ) => {
         $group.bench_function("uint", |b| {
             let mut rng = get_rng();
-            // let x = <$ty>::from_str_radix(&rng.gen_biguint($bits).to_str_radix(16), 16).unwrap();
-            // let y = <$ty>::from_str_radix(&rng.gen_biguint($bits).to_str_radix(16), 16).unwrap();
-            b.iter_batched(
+            b.iter_batched_ref(
                 || {
                     let x = <$ty>::from_str_radix(&rng.gen_biguint($bits).to_str_radix(16), 16)
                         .unwrap();
@@ -47,10 +45,41 @@ macro_rules! uint {
                         .unwrap();
                     (x, y)
                 },
-                |(x, y)| ($run)(x, y),
+                $run,
                 BatchSize::SmallInput,
             )
         });
+    };
+}
+
+/*
+if bits == 64 {
+        uint!(group, bits, u64, |(x, y)| x.checked_div(*y));
+    }
+    if bits == 128 {
+        uint!(group, bits, u128, |(x, y)| x.checked_div(*y));
+    }
+    if bits == 1024 {
+        uint!(group, bits, U1024, |(x, y)| x.checked_div(*y));
+    }
+    if bits == 4096 {
+        uint!(group, bits, U4096, |(x, y)| x.checked_div(*y));
+    }
+ */
+macro_rules! uint_all {
+    ( $group: ident, $bits: ident, $run: expr) => {
+        if $bits == 64 {
+            uint!($group, $bits, u64, |(x, y)| x.checked_div(*y));
+        }
+        if $bits == 128 {
+            uint!($group, $bits, u128, |(x, y)| x.checked_div(*y));
+        }
+        if $bits == 1024 {
+            uint!($group, $bits, U1024, |(x, y)| x.checked_div(*y));
+        }
+        if $bits == 4096 {
+            uint!($group, $bits, U4096, |(x, y)| x.checked_div(*y));
+        }
     };
 }
 
@@ -81,12 +110,10 @@ fn bigint(
 ) {
     group.bench_function("num", |b| {
         let mut rng = get_rng();
-        // let x = rng.gen_bigint(bits);
-        // let y = rng.gen_bigint(bits);
 
-        b.iter_batched(
+        b.iter_batched_ref(
             || (rng.gen_bigint(bits), rng.gen_bigint(bits)),
-            |(x, y)| run(&x, &y),
+            |(x, y)| run(x, y),
             BatchSize::SmallInput,
         )
     });
@@ -100,16 +127,14 @@ fn rug(
 ) {
     group.bench_function("rug", |b| {
         let mut rng = get_rng();
-        // let x = bigint_to_rug(rng.gen_bigint(bits));
-        // let y = bigint_to_rug(rng.gen_bigint(bits));
-        b.iter_batched(
+        b.iter_batched_ref(
             || {
                 (
                     bigint_to_rug(rng.gen_bigint(bits)),
                     bigint_to_rug(rng.gen_bigint(bits)),
                 )
             },
-            |(x, y)| run(&x, &y),
+            |(x, y)| run(x, y),
             BatchSize::SmallInput,
         )
     });
@@ -123,16 +148,14 @@ fn ramp(
 ) {
     group.bench_function("ramp", |b| {
         let mut rng = get_rng();
-        // let x = bigint_to_ramp(rng.gen_bigint(bits));
-        // let y = bigint_to_ramp(rng.gen_bigint(bits));
-        b.iter_batched(
+        b.iter_batched_ref(
             || {
                 (
                     bigint_to_ramp(rng.gen_bigint(bits)),
                     bigint_to_ramp(rng.gen_bigint(bits)),
                 )
             },
-            |(x, y)| run(&x, &y),
+            |(x, y)| run(x, y),
             BatchSize::SmallInput,
         )
     });
@@ -143,10 +166,10 @@ fn ramp(
 
 fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     if bits == 64 {
-        uint!(group, bits, u64, |x: u64, y: u64| x.gcd(&y));
+        uint!(group, bits, u64, |(x, y)| x.gcd(&y));
     }
     if bits == 128 {
-        uint!(group, bits, u128, |x: u128, y: u128| x.gcd(&y));
+        uint!(group, bits, u128, |(x, y)| x.gcd(&y));
     }
     bigint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "rug")]
@@ -156,20 +179,7 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 }
 
 fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
-    if bits == 64 {
-        uint!(group, bits, u64, |x: u64, y: u64| x.overflowing_mul(y));
-    }
-    if bits == 128 {
-        uint!(group, bits, u128, |x: u128, y: u128| x.overflowing_mul(y));
-    }
-    if bits == 1024 {
-        uint!(group, bits, U1024, |x: U1024, y: U1024| x
-            .overflowing_mul(y));
-    }
-    if bits == 4096 {
-        uint!(group, bits, U4096, |x: U4096, y: U4096| x
-            .overflowing_mul(y));
-    }
+    uint_all!(group, bits, |(x, y)| x.overflowing_mul(*y));
     bigint(group, bits, |x, y| x * y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x * y));
@@ -178,20 +188,7 @@ fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 }
 
 fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
-    if bits == 64 {
-        uint!(group, bits, u64, |x: u64, y: u64| x.overflowing_add(y));
-    }
-    if bits == 128 {
-        uint!(group, bits, u128, |x: u128, y: u128| x.overflowing_add(y));
-    }
-    if bits == 1024 {
-        uint!(group, bits, U1024, |x: U1024, y: U1024| x
-            .overflowing_add(y));
-    }
-    if bits == 4096 {
-        uint!(group, bits, U4096, |x: U4096, y: U4096| x
-            .overflowing_add(y));
-    }
+    uint_all!(group, bits, |(x, y)| x.overflowing_add(*y));
     bigint(group, bits, |x, y| x + y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x + y));
@@ -200,18 +197,7 @@ fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 }
 
 fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
-    if bits == 64 {
-        uint!(group, bits, u64, |x: u64, y: u64| x.checked_div(y));
-    }
-    if bits == 128 {
-        uint!(group, bits, u128, |x: u128, y: u128| x.checked_div(y));
-    }
-    if bits == 1024 {
-        uint!(group, bits, U1024, |x: U1024, y: U1024| x.checked_div(y));
-    }
-    if bits == 4096 {
-        uint!(group, bits, U4096, |x: U4096, y: U4096| x.checked_div(y));
-    }
+    uint_all!(group, bits, |(x, y)| x.checked_div(*y));
     bigint(group, bits, |x, y| x / y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x / y));
