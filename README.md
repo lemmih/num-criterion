@@ -11,15 +11,19 @@ There are three major arbitrary-precision number crates: [num], [rug], and [ramp
 
 ```cargo install cargo-criterion```
 
-## Run
+## Minimal run
 
 ```cargo criterion```
 
-## Quiet run
+## Run with `rug`
 
-```cargo criterion --output-format quiet```
+```cargo criterion --features rug```
 
-# Benchmark results for num vs rug vs ramp:
+## Run with `ramp` (requires nightly)
+
+```cargo +nightly criterion --features ramp```
+
+# Benchmark results for `num` vs `rug` vs `ramp`:
 
 ```
 gcd/64bits/native       time:   [75.055 ns 75.313 ns 75.674 ns]
