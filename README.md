@@ -121,6 +121,102 @@ add/32768bits/rug       time:   [244.27 ns 247.69 ns 252.24 ns]
 add/32768bits/ramp      time:   [778.82 ns 780.26 ns 781.92 ns]
 ```
 
+## 3950X
+
+```
+gcd/64bits/num          time:   [980.73 ns 981.14 ns 981.54 ns]
+gcd/64bits/rug          time:   [91.093 ns 91.224 ns 91.350 ns]
+gcd/64bits/ramp         time:   [625.48 ns 625.90 ns 626.34 ns]
+
+gcd/128bits/num         time:   [1.9583 us 1.9592 us 1.9601 us]
+gcd/128bits/rug         time:   [263.77 ns 263.99 ns 264.19 ns]
+gcd/128bits/ramp        time:   [1.3596 us 1.3604 us 1.3614 us]
+
+gcd/1024bits/num        time:   [18.101 us 18.109 us 18.117 us]
+gcd/1024bits/rug        time:   [5.6577 us 5.6608 us 5.6640 us]
+gcd/1024bits/ramp       time:   [16.691 us 16.699 us 16.709 us]
+
+gcd/4096bits/num        time:   [116.43 us 116.48 us 116.53 us]
+gcd/4096bits/rug        time:   [26.592 us 26.611 us 26.633 us]
+gcd/4096bits/ramp       time:   [181.92 us 182.03 us 182.16 us]
+
+gcd/32768bits/num       time:   [4.7134 ms 4.7164 ms 4.7195 ms]
+gcd/32768bits/rug       time:   [439.33 us 439.63 us 439.98 us]
+gcd/32768bits/ramp      time:   [10.347 ms 10.353 ms 10.358 ms]
+
+mul/64bits/uint         time:   [702.21 ps 703.71 ps 705.45 ps]
+mul/64bits/num          time:   [58.256 ns 58.287 ns 58.318 ns]
+mul/64bits/rug          time:   [31.128 ns 31.152 ns 31.176 ns]
+mul/64bits/ramp         time:   [56.471 ns 56.633 ns 56.795 ns]
+
+mul/128bits/uint        time:   [1.9680 ns 1.9725 ns 1.9773 ns]
+mul/128bits/num         time:   [80.803 ns 80.937 ns 81.049 ns]
+mul/128bits/rug         time:   [32.206 ns 32.329 ns 32.522 ns]
+mul/128bits/ramp        time:   [69.232 ns 69.298 ns 69.361 ns]
+
+mul/1024bits/uint       time:   [307.28 ns 307.61 ns 307.96 ns]
+mul/1024bits/num        time:   [288.07 ns 288.31 ns 288.54 ns]
+mul/1024bits/rug        time:   [217.02 ns 217.42 ns 217.81 ns]
+mul/1024bits/ramp       time:   [261.72 ns 262.39 ns 263.13 ns]
+
+mul/4096bits/uint       time:   [5.8614 us 5.8678 us 5.8747 us]
+mul/4096bits/num        time:   [2.8362 us 2.8396 us 2.8434 us]
+mul/4096bits/rug        time:   [1.3950 us 1.3961 us 1.3972 us]
+mul/4096bits/ramp       time:   [2.1982 us 2.2008 us 2.2034 us]
+
+mul/32768bits/num       time:   [90.095 us 90.163 us 90.237 us]
+mul/32768bits/rug       time:   [31.905 us 31.941 us 31.980 us]
+mul/32768bits/ramp      time:   [63.691 us 63.735 us 63.778 us]
+
+div/64bits/uint         time:   [3.3467 ns 3.3495 ns 3.3525 ns]
+div/64bits/num          time:   [65.419 ns 65.446 ns 65.474 ns]
+div/64bits/rug          time:   [45.649 ns 45.745 ns 45.850 ns]
+div/64bits/ramp         time:   [50.399 ns 50.438 ns 50.478 ns]
+
+div/128bits/uint        time:   [10.246 ns 10.293 ns 10.354 ns]
+div/128bits/num         time:   [107.51 ns 107.64 ns 107.77 ns]
+div/128bits/rug         time:   [77.877 ns 78.477 ns 78.966 ns]
+div/128bits/ramp        time:   [90.324 ns 90.399 ns 90.473 ns]
+
+div/1024bits/uint       time:   [99.092 ns 99.324 ns 99.595 ns]
+div/1024bits/num        time:   [145.66 ns 146.01 ns 146.39 ns]
+div/1024bits/rug        time:   [104.79 ns 104.90 ns 105.03 ns]
+div/1024bits/ramp       time:   [191.57 ns 192.28 ns 193.04 ns]
+
+div/4096bits/uint       time:   [290.62 ns 291.05 ns 291.48 ns]
+div/4096bits/num        time:   [248.76 ns 249.55 ns 250.35 ns]
+div/4096bits/rug        time:   [139.03 ns 139.43 ns 139.77 ns]
+div/4096bits/ramp       time:   [268.43 ns 269.08 ns 269.70 ns]
+
+div/32768bits/num       time:   [1.0093 us 1.0211 us 1.0322 us]
+div/32768bits/rug       time:   [147.47 ns 149.00 ns 150.26 ns]
+div/32768bits/ramp      time:   [831.19 ns 834.27 ns 836.91 ns]
+
+add/64bits/uint         time:   [628.12 ps 630.45 ps 633.28 ps]
+add/64bits/num          time:   [66.988 ns 67.052 ns 67.113 ns]
+add/64bits/rug          time:   [40.561 ns 40.588 ns 40.615 ns]
+add/64bits/ramp         time:   [58.539 ns 58.576 ns 58.615 ns]
+
+add/128bits/uint        time:   [795.87 ps 800.16 ps 805.45 ps]
+add/128bits/num         time:   [66.322 ns 66.397 ns 66.470 ns]
+add/128bits/rug         time:   [59.298 ns 59.384 ns 59.463 ns]
+add/128bits/ramp        time:   [53.181 ns 53.229 ns 53.281 ns]
+
+add/1024bits/uint       time:   [55.241 ns 55.363 ns 55.479 ns]
+add/1024bits/num        time:   [75.225 ns 75.618 ns 76.007 ns]
+add/1024bits/rug        time:   [80.558 ns 80.768 ns 81.015 ns]
+add/1024bits/ramp       time:   [65.506 ns 65.645 ns 65.792 ns]
+
+add/4096bits/uint       time:   [220.45 ns 221.01 ns 221.50 ns]
+add/4096bits/num        time:   [108.10 ns 110.97 ns 113.49 ns]
+add/4096bits/rug        time:   [123.56 ns 123.89 ns 124.22 ns]
+add/4096bits/ramp       time:   [114.38 ns 114.89 ns 115.34 ns]
+
+add/32768bits/num       time:   [458.08 ns 477.35 ns 494.64 ns]
+add/32768bits/rug       time:   [289.68 ns 292.16 ns 294.24 ns]
+add/32768bits/ramp      time:   [690.49 ns 692.34 ns 694.10 ns]
+```
+
 [num]: https://crates.io/crates/num
 [rug]: https://crates.io/crates/rug
 [ramp]: https://crates.io/crates/ramp
