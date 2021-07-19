@@ -38,13 +38,7 @@ fn mk_benchmark(c: &mut Criterion, name: &str, run_group: BenchGroup, native: fn
 
 #[cfg(feature = "rug")]
 fn bigint_to_rug(big: BigInt) -> RugInteger {
-    let (sign, digits) = big.to_u64_digits();
-    let rug = RugInteger::from_digits(&digits, rug::integer::Order::Lsf);
-    if sign == num_bigint::Sign::Minus {
-        -rug
-    } else {
-        rug
-    }
+    RugInteger::from_str_radix(&big.to_str_radix(16), 16).unwrap()
 }
 
 #[cfg(feature = "ramp")]
@@ -52,32 +46,50 @@ fn bigint_to_ramp(big: BigInt) -> RampInt {
     RampInt::from_str_radix(&big.to_str_radix(16), 16).unwrap()
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Multiply benches
+fn bigint(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &BigInt, _: &BigInt) -> BigInt,
+) {
+    group.bench_function("num", |b| {
+        let mut rng = get_rng();
+        let x = rng.gen_bigint(bits);
+        let y = rng.gen_bigint(bits);
 
-fn mul_bench_bigint(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = rng.gen_bigint(bits);
-    let y = rng.gen_bigint(bits);
-
-    b.iter(|| &x * &y);
+        b.iter(|| run(&x, &y))
+    });
 }
 
 #[cfg(feature = "rug")]
-fn mul_bench_rug(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = bigint_to_rug(rng.gen_bigint(bits));
-    let y = bigint_to_rug(rng.gen_bigint(bits));
-    b.iter(|| RugInteger::from(&x * &y));
+fn rug(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &RugInteger, _: &RugInteger) -> RugInteger,
+) {
+    group.bench_function("rug", |b| {
+        let mut rng = get_rng();
+        let x = bigint_to_rug(rng.gen_bigint(bits));
+        let y = bigint_to_rug(rng.gen_bigint(bits));
+        b.iter(|| run(&x, &y))
+    });
 }
 
 #[cfg(feature = "ramp")]
-fn mul_bench_ramp(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = bigint_to_ramp(rng.gen_bigint(bits));
-    let y = bigint_to_ramp(rng.gen_bigint(bits));
-    b.iter(|| &x * &y);
+fn ramp(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &RampInt, _: &RampInt) -> RampInt,
+) {
+    group.bench_function("ramp", |b| {
+        let mut rng = get_rng();
+        let x = bigint_to_ramp(rng.gen_bigint(bits));
+        let y = bigint_to_ramp(rng.gen_bigint(bits));
+        b.iter(|| run(&x, &y))
+    });
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Multiply benches
 
 fn mul_bench_native(b: &mut Bencher) {
     let mut rng = get_rng();
@@ -87,31 +99,6 @@ fn mul_bench_native(b: &mut Bencher) {
 ///////////////////////////////////////////////////////////////////////////////
 // Division benches
 
-fn div_bench_bigint(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = rng.gen_bigint(bits);
-    let y = rng.gen_bigint(bits);
-
-    b.iter(|| &x / &y);
-}
-
-#[cfg(feature = "rug")]
-fn div_bench_rug(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = bigint_to_rug(rng.gen_bigint(bits));
-    let y = bigint_to_rug(rng.gen_bigint(bits));
-    b.iter(|| RugInteger::from(&x / &y));
-}
-
-#[cfg(feature = "ramp")]
-fn div_bench_ramp(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = bigint_to_ramp(rng.gen_bigint(bits));
-    let y = bigint_to_ramp(rng.gen_bigint(bits));
-
-    b.iter(|| &x / &y);
-}
-
 fn div_bench_native(b: &mut Bencher) {
     let mut rng = get_rng();
     b.iter(|| rng.next_u64() / rng.next_u64());
@@ -120,30 +107,6 @@ fn div_bench_native(b: &mut Bencher) {
 ///////////////////////////////////////////////////////////////////////////////
 // Addition benches
 
-fn add_bench_bigint(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = rng.gen_bigint(bits);
-    let y = rng.gen_bigint(bits);
-
-    b.iter(|| &x + &y);
-}
-
-#[cfg(feature = "rug")]
-fn add_bench_rug(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = bigint_to_rug(rng.gen_bigint(bits));
-    let y = bigint_to_rug(rng.gen_bigint(bits));
-    b.iter(|| RugInteger::from(&x + &y));
-}
-
-#[cfg(feature = "ramp")]
-fn add_bench_ramp(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = bigint_to_ramp(rng.gen_bigint(bits));
-    let y = bigint_to_ramp(rng.gen_bigint(bits));
-    b.iter(|| &x + &y);
-}
-
 fn add_bench_native(b: &mut Bencher) {
     let mut rng = get_rng();
     b.iter(|| rng.next_u64() + rng.next_u64());
@@ -151,30 +114,6 @@ fn add_bench_native(b: &mut Bencher) {
 
 ///////////////////////////////////////////////////////////////////////////////
 // GCD benches
-
-fn gcd_bench_bigint(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = rng.gen_bigint(bits);
-    let y = rng.gen_bigint(bits);
-
-    b.iter(|| BigInt::gcd(&x, &y));
-}
-
-#[cfg(feature = "rug")]
-fn gcd_bench_rug(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = bigint_to_rug(rng.gen_bigint(bits));
-    let y = bigint_to_rug(rng.gen_bigint(bits));
-    b.iter(|| RugInteger::from(RugInteger::gcd_ref(&x, &y)));
-}
-
-#[cfg(feature = "ramp")]
-fn gcd_bench_ramp(b: &mut Bencher, bits: u64) {
-    let mut rng = get_rng();
-    let x = bigint_to_ramp(rng.gen_bigint(bits));
-    let y = bigint_to_ramp(rng.gen_bigint(bits));
-    b.iter(|| RampInt::gcd(&x, &y));
-}
 
 fn gcd_bench_native(b: &mut Bencher) {
     let mut rng = get_rng();
@@ -188,35 +127,43 @@ fn gcd_bench_native(b: &mut Bencher) {
 // Groups
 
 fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
-    group.bench_function("num", |b| gcd_bench_bigint(b, bits));
+    bigint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "rug")]
-    group.bench_function("rug", |b| gcd_bench_rug(b, bits));
+    rug(group, bits, |x, y| RugInteger::from(x.gcd_ref(y)));
     #[cfg(feature = "ramp")]
-    group.bench_function("ramp", |b| gcd_bench_ramp(b, bits));
+    ramp(group, bits, |x, y| x.gcd(y));
 }
 
 fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
-    group.bench_function("num", |b| mul_bench_bigint(b, bits));
+    // if bits == 1024 {
+    //     group.bench_function("uint", |b| {
+    //         let mut rng = get_rng();
+    //         let x = U1024::from_str_radix(&rng.gen_biguint(bits).to_str_radix(16), 16).unwrap();
+    //         let y = U1024::from_str_radix(&rng.gen_biguint(bits).to_str_radix(16), 16).unwrap();
+    //         b.iter(|| x.overflowing_mul(y))
+    //     });
+    // }
+    bigint(group, bits, |x, y| x * y);
     #[cfg(feature = "rug")]
-    group.bench_function("rug", |b| mul_bench_rug(b, bits));
+    rug(group, bits, |x, y| RugInteger::from(x * y));
     #[cfg(feature = "ramp")]
-    group.bench_function("ramp", |b| mul_bench_ramp(b, bits));
+    ramp(group, bits, |x, y| x * y);
 }
 
 fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
-    group.bench_function("num", |b| add_bench_bigint(b, bits));
+    bigint(group, bits, |x, y| x + y);
     #[cfg(feature = "rug")]
-    group.bench_function("rug", |b| add_bench_rug(b, bits));
+    rug(group, bits, |x, y| RugInteger::from(x + y));
     #[cfg(feature = "ramp")]
-    group.bench_function("ramp", |b| add_bench_ramp(b, bits));
+    ramp(group, bits, |x, y| x + y);
 }
 
 fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
-    group.bench_function("num", |b| div_bench_bigint(b, bits));
+    bigint(group, bits, |x, y| x / y);
     #[cfg(feature = "rug")]
-    group.bench_function("rug", |b| div_bench_rug(b, bits));
+    rug(group, bits, |x, y| RugInteger::from(x / y));
     #[cfg(feature = "ramp")]
-    group.bench_function("ramp", |b| div_bench_ramp(b, bits));
+    ramp(group, bits, |x, y| x / y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
