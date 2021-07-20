@@ -90,7 +90,6 @@ fn mk_benchmark(c: &mut Criterion, name: &str, run_group: BenchGroup) {
 }
 
 type GCD = u64;
-type iGCD = i64;
 fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
     pub fn branch_min_diff(a: GCD, b: GCD) -> (GCD, GCD) {
         let (t, o) = a.overflowing_sub(b);
@@ -103,18 +102,19 @@ fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
         }
     }
 
-    pub fn branchless_min(a: GCD, b: GCD) -> GCD {
-        // most-significant-bit of a and b must be 0
-        let t = a.wrapping_sub(b);
-        let mask = (t as iGCD >> (GCD::BITS - 1)) as GCD;
-        b.wrapping_add(t & mask)
-    }
-    pub fn branchless_diff(a: GCD, b: GCD) -> GCD {
-        // most-significant-bit of a and b must be 0
-        let t = a.wrapping_sub(b);
-        let mask = (t as iGCD >> (GCD::BITS - 1)) as GCD;
-        (t ^ mask).wrapping_sub(mask)
-    }
+    // These aren't necessary on x86-64 or arm64.
+    // pub fn branchless_min(a: GCD, b: GCD) -> GCD {
+    //     // most-significant-bit of a and b must be 0
+    //     let t = a.wrapping_sub(b);
+    //     let mask = (t as iGCD >> (GCD::BITS - 1)) as GCD;
+    //     b.wrapping_add(t & mask)
+    // }
+    // pub fn branchless_diff(a: GCD, b: GCD) -> GCD {
+    //     // most-significant-bit of a and b must be 0
+    //     let t = a.wrapping_sub(b);
+    //     let mask = (t as iGCD >> (GCD::BITS - 1)) as GCD;
+    //     (t ^ mask).wrapping_sub(mask)
+    // }
     // Use Stein's algorithm
     if m == 0 || n == 0 {
         return m | n;
