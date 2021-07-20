@@ -378,10 +378,10 @@ fn clone_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     bigint(group, bits, |x, _y| x.clone());
 
     #[cfg(feature = "num-bigint-small")]
-    smallint(group, bits, |x, _y| x);
+    smallint(group, bits, |x, _y| x.clone());
 
     #[cfg(feature = "num-bigint-small")]
-    denseint(group, bits, |x, _y| x);
+    denseint(group, bits, |x, _y| x.clone());
 
     #[cfg(feature = "rug")]
     rug(group, bits, |x, _y| RugInteger::from(x));
