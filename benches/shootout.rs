@@ -12,6 +12,9 @@ use criterion::{
 use num_bigint::BigInt;
 #[cfg(feature = "num-bigint-small")]
 use num_bigint_small::BigInt as BigIntSmall;
+#[cfg(feature = "num-bigint-small")]
+use num_bigint_small::BigIntSmall as BigIntDense;
+
 use num_integer::Integer;
 #[cfg(feature = "rug")]
 use std::ops::*;
@@ -186,11 +189,29 @@ fn smallint(
     run: fn(_: &BigIntSmall, _: &BigIntSmall) -> BigIntSmall,
 ) {
     use num_bigint_small::RandBigInt;
-    group.bench_function("num_small", |b| {
+    group.bench_function("num_svec", |b| {
         let mut rng = get_rng();
 
         b.iter_batched_ref(
             || (rng.gen_bigint(bits), rng.gen_bigint(bits)),
+            |(x, y)| run(x, y),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
+#[cfg(feature = "num-bigint-small")]
+fn denseint(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &BigIntDense, _: &BigIntDense) -> BigIntDense,
+) {
+    use num_bigint_small::RandBigInt;
+    group.bench_function("num_dense", |b| {
+        let mut rng = get_rng();
+
+        b.iter_batched_ref(
+            || (rng.gen_bigintsmall(bits), rng.gen_bigintsmall(bits)),
             |(x, y)| run(x, y),
             BatchSize::SmallInput,
         )
@@ -292,6 +313,8 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     bigint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "num-bigint-small")]
     smallint(group, bits, |x, y| x.gcd(y));
+    #[cfg(feature = "num-bigint-small")]
+    denseint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x.gcd_ref(y)));
     #[cfg(feature = "rug")]
@@ -305,6 +328,8 @@ fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     bigint(group, bits, |x, y| x * y);
     #[cfg(feature = "num-bigint-small")]
     smallint(group, bits, |x, y| x * y);
+    #[cfg(feature = "num-bigint-small")]
+    denseint(group, bits, |x, y| x * y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x * y));
     #[cfg(feature = "rug")]
@@ -318,6 +343,8 @@ fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     bigint(group, bits, |x, y| x + y);
     #[cfg(feature = "num-bigint-small")]
     smallint(group, bits, |x, y| x + y);
+    #[cfg(feature = "num-bigint-small")]
+    denseint(group, bits, |x, y| x.clone());
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x + y));
     #[cfg(feature = "rug")]
@@ -328,15 +355,38 @@ fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 
 fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     uint_all!(group, bits, |(x, y)| x.checked_div(*y));
+
     bigint(group, bits, |x, y| x / y);
+
     #[cfg(feature = "num-bigint-small")]
     smallint(group, bits, |x, y| x / y);
+
+    #[cfg(feature = "num-bigint-small")]
+    denseint(group, bits, |x, y| x / y);
+
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x / y));
     #[cfg(feature = "rug")]
     rug_mut(group, bits, |x, y| x.div_assign(y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x / y);
+}
+
+fn clone_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
+    uint_all!(group, bits, |(x, _y)| x);
+
+    bigint(group, bits, |x, _y| x.clone());
+
+    #[cfg(feature = "num-bigint-small")]
+    smallint(group, bits, |x, _y| x);
+
+    #[cfg(feature = "num-bigint-small")]
+    denseint(group, bits, |x, _y| x);
+
+    #[cfg(feature = "rug")]
+    rug(group, bits, |x, _y| RugInteger::from(x));
+    #[cfg(feature = "ramp")]
+    ramp(group, bits, |x, _y| x);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -347,6 +397,7 @@ fn benchmarks(c: &mut Criterion) {
     mk_benchmark(c, "mul", mul_group);
     mk_benchmark(c, "div", div_group);
     mk_benchmark(c, "add", add_group);
+    mk_benchmark(c, "clone", clone_group);
 }
 
 criterion_group!(benches, benchmarks,);
