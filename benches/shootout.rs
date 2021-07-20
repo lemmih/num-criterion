@@ -93,6 +93,54 @@ fn mk_benchmark(c: &mut Criterion, name: &str, run_group: BenchGroup) {
     }
 }
 
+type GCD = u64;
+type iGCD = i64;
+fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
+    pub fn branchless_min(a: GCD, b: GCD) -> GCD {
+        // most-significant-bit of a and b must be 0
+        let t = a.wrapping_sub(b);
+        let mask = (t as iGCD >> (GCD::BITS - 1)) as GCD;
+        b.wrapping_add(t & mask)
+    }
+    pub fn branchless_diff(a: GCD, b: GCD) -> GCD {
+        // most-significant-bit of a and b must be 0
+        let t = a.wrapping_sub(b);
+        let mask = (t as iGCD >> (GCD::BITS - 1)) as GCD;
+        (t ^ mask).wrapping_sub(mask)
+    }
+    // Use Stein's algorithm
+    if m == 0 || n == 0 {
+        return m | n;
+    }
+
+    // find common factors of 2
+    let shift = (m | n).trailing_zeros();
+
+    // dbg!(shift);
+
+    // divide n and m by 2 until odd
+    // Then
+    m >>= m.trailing_zeros() + 1;
+    n >>= n.trailing_zeros() + 1;
+
+    while m != n {
+        let n_ = branchless_min(m, n);
+        let m_ = branchless_diff(m, n);
+        let c = m_.trailing_zeros();
+        n = n_;
+        m = m_ >> 1;
+        m >>= c;
+        // if m > n {
+        //     m -= n;
+        //     m >>= m.trailing_zeros();
+        // } else {
+        //     n -= m;
+        //     n >>= n.trailing_zeros();
+        // }
+    }
+    ((m << 1) + 1) << shift
+}
+
 #[cfg(feature = "rug")]
 fn bigint_to_rug(big: BigInt) -> RugInteger {
     RugInteger::from_str_radix(&big.to_str_radix(16), 16).unwrap()
@@ -166,10 +214,26 @@ fn ramp(
 
 fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     if bits == 64 {
-        uint!(group, bits, u64, |(x, y)| x.gcd(&y));
+        uint!(group, bits, u64, |(x, y)| x.gcd(y));
+    }
+    if bits == 64 {
+        group.bench_function("branchless_gcd", |b| {
+            let mut rng = get_rng();
+            b.iter_batched_ref(
+                || {
+                    let x =
+                        u64::from_str_radix(&rng.gen_biguint(bits).to_str_radix(16), 16).unwrap();
+                    let y =
+                        u64::from_str_radix(&rng.gen_biguint(bits).to_str_radix(16), 16).unwrap();
+                    (x, y)
+                },
+                |(x, y)| fast_gcd(*x, *y),
+                BatchSize::SmallInput,
+            )
+        });
     }
     if bits == 128 {
-        uint!(group, bits, u128, |(x, y)| x.gcd(&y));
+        uint!(group, bits, u128, |(x, y)| x.gcd(y));
     }
     bigint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "rug")]
