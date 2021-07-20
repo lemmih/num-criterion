@@ -12,6 +12,7 @@ use criterion::{
 use num_bigint::{BigInt, RandBigInt};
 use num_integer::Integer;
 
+#[cfg(feature = "uint")]
 use uint::construct_uint;
 
 #[cfg(feature = "rug")]
@@ -24,11 +25,13 @@ mod rng;
 // use rand::RngCore;
 use rng::get_rng;
 
+#[cfg(feature = "uint")]
 construct_uint! {
     pub struct U1024(16);
 }
 
 // uint doesn't go higher than this.
+#[cfg(feature = "uint")]
 construct_uint! {
     pub struct U4096(64);
 }
@@ -52,20 +55,6 @@ macro_rules! uint {
     };
 }
 
-/*
-if bits == 64 {
-        uint!(group, bits, u64, |(x, y)| x.checked_div(*y));
-    }
-    if bits == 128 {
-        uint!(group, bits, u128, |(x, y)| x.checked_div(*y));
-    }
-    if bits == 1024 {
-        uint!(group, bits, U1024, |(x, y)| x.checked_div(*y));
-    }
-    if bits == 4096 {
-        uint!(group, bits, U4096, |(x, y)| x.checked_div(*y));
-    }
- */
 macro_rules! uint_all {
     ( $group: ident, $bits: ident, $run: expr) => {
         if $bits == 64 {
@@ -74,9 +63,11 @@ macro_rules! uint_all {
         if $bits == 128 {
             uint!($group, $bits, u128, |(x, y)| x.checked_div(*y));
         }
+        #[cfg(feature = "uint")]
         if $bits == 1024 {
             uint!($group, $bits, U1024, |(x, y)| x.checked_div(*y));
         }
+        #[cfg(feature = "uint")]
         if $bits == 4096 {
             uint!($group, $bits, U4096, |(x, y)| x.checked_div(*y));
         }
@@ -96,6 +87,17 @@ fn mk_benchmark(c: &mut Criterion, name: &str, run_group: BenchGroup) {
 type GCD = u64;
 type iGCD = i64;
 fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
+    pub fn branch_min_diff(a: GCD, b: GCD) -> (GCD, GCD) {
+        let (t, o) = a.overflowing_sub(b);
+        if o {
+            // a<b
+            (a, !t + 1)
+        } else {
+            // a>b
+            (b, t)
+        }
+    }
+
     pub fn branchless_min(a: GCD, b: GCD) -> GCD {
         // most-significant-bit of a and b must be 0
         let t = a.wrapping_sub(b);
@@ -124,12 +126,16 @@ fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
     n >>= n.trailing_zeros() + 1;
 
     while m != n {
+        // let (n_, m_) = branch_min_diff(m, n);
         let n_ = branchless_min(m, n);
         let m_ = branchless_diff(m, n);
         let c = m_.trailing_zeros();
         n = n_;
         m = m_ >> 1;
         m >>= c;
+        if m == n {
+            break;
+        }
         // if m > n {
         //     m -= n;
         //     m >>= m.trailing_zeros();
@@ -217,7 +223,7 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         uint!(group, bits, u64, |(x, y)| x.gcd(y));
     }
     if bits == 64 {
-        group.bench_function("branchless_gcd", |b| {
+        group.bench_function("branchless", |b| {
             let mut rng = get_rng();
             b.iter_batched_ref(
                 || {
