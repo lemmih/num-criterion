@@ -9,7 +9,9 @@ use criterion::{
     Criterion,
 };
 
-use num_bigint::{BigInt, RandBigInt};
+use num_bigint::BigInt;
+#[cfg(feature = "num-bigint-small")]
+use num_bigint_small::BigInt as BigIntSmall;
 use num_integer::Integer;
 #[cfg(feature = "rug")]
 use std::ops::*;
@@ -40,6 +42,7 @@ construct_uint! {
 
 macro_rules! uint {
     ( $group: ident, $bits: ident, $ty:ty, $run: expr ) => {
+        use num_bigint::RandBigInt;
         $group.bench_function("uint", |b| {
             let mut rng = get_rng();
             b.iter_batched_ref(
@@ -128,9 +131,9 @@ fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
     n >>= n.trailing_zeros() + 1;
 
     while m != n {
-        // let (n_, m_) = branch_min_diff(m, n);
-        let n_ = branchless_min(m, n);
-        let m_ = branchless_diff(m, n);
+        let (n_, m_) = branch_min_diff(m, n);
+        // let n_ = branchless_min(m, n);
+        // let m_ = branchless_diff(m, n);
         let c = m_.trailing_zeros();
         n = n_;
         m = m_ >> 1;
@@ -164,7 +167,26 @@ fn bigint(
     bits: u64,
     run: fn(_: &BigInt, _: &BigInt) -> BigInt,
 ) {
+    use num_bigint::RandBigInt;
     group.bench_function("num", |b| {
+        let mut rng = get_rng();
+
+        b.iter_batched_ref(
+            || (rng.gen_bigint(bits), rng.gen_bigint(bits)),
+            |(x, y)| run(x, y),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
+#[cfg(feature = "num-bigint-small")]
+fn smallint(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &BigIntSmall, _: &BigIntSmall) -> BigIntSmall,
+) {
+    use num_bigint_small::RandBigInt;
+    group.bench_function("num_small", |b| {
         let mut rng = get_rng();
 
         b.iter_batched_ref(
@@ -181,6 +203,7 @@ fn rug(
     bits: u64,
     run: fn(_: &RugInteger, _: &RugInteger) -> RugInteger,
 ) {
+    use num_bigint::RandBigInt;
     group.bench_function("rug", |b| {
         let mut rng = get_rng();
         b.iter_batched_ref(
@@ -202,6 +225,7 @@ fn rug_mut(
     bits: u64,
     run: fn(_: &mut RugInteger, _: &RugInteger),
 ) {
+    use num_bigint::RandBigInt;
     group.bench_function("rug_mut", |b| {
         let mut rng = get_rng();
         b.iter_batched_ref(
@@ -246,6 +270,7 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         uint!(group, bits, u64, |(x, y)| x.gcd(y));
     }
     if bits == 64 {
+        use num_bigint::RandBigInt;
         group.bench_function("branchless", |b| {
             let mut rng = get_rng();
             b.iter_batched_ref(
@@ -265,6 +290,8 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         uint!(group, bits, u128, |(x, y)| x.gcd(y));
     }
     bigint(group, bits, |x, y| x.gcd(y));
+    #[cfg(feature = "num-bigint-small")]
+    smallint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x.gcd_ref(y)));
     #[cfg(feature = "rug")]
@@ -276,6 +303,8 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     uint_all!(group, bits, |(x, y)| x.overflowing_mul(*y));
     bigint(group, bits, |x, y| x * y);
+    #[cfg(feature = "num-bigint-small")]
+    smallint(group, bits, |x, y| x * y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x * y));
     #[cfg(feature = "rug")]
@@ -287,6 +316,8 @@ fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     uint_all!(group, bits, |(x, y)| x.overflowing_add(*y));
     bigint(group, bits, |x, y| x + y);
+    #[cfg(feature = "num-bigint-small")]
+    smallint(group, bits, |x, y| x + y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x + y));
     #[cfg(feature = "rug")]
@@ -298,6 +329,8 @@ fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     uint_all!(group, bits, |(x, y)| x.checked_div(*y));
     bigint(group, bits, |x, y| x / y);
+    #[cfg(feature = "num-bigint-small")]
+    smallint(group, bits, |x, y| x / y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x / y));
     #[cfg(feature = "rug")]
