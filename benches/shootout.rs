@@ -11,6 +11,8 @@ use criterion::{
 
 use num_bigint::{BigInt, RandBigInt};
 use num_integer::Integer;
+#[cfg(feature = "rug")]
+use std::ops::*;
 
 #[cfg(feature = "uint")]
 use uint::construct_uint;
@@ -194,6 +196,27 @@ fn rug(
     });
 }
 
+#[cfg(feature = "rug")]
+fn rug_mut(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &mut RugInteger, _: &RugInteger),
+) {
+    group.bench_function("rug_mut", |b| {
+        let mut rng = get_rng();
+        b.iter_batched_ref(
+            || {
+                (
+                    bigint_to_rug(rng.gen_bigint(bits)),
+                    bigint_to_rug(rng.gen_bigint(bits)),
+                )
+            },
+            |(x, y)| run(x, y),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
 #[cfg(feature = "ramp")]
 fn ramp(
     group: &mut BenchmarkGroup<'_, WallTime>,
@@ -244,6 +267,8 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     bigint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x.gcd_ref(y)));
+    #[cfg(feature = "rug")]
+    rug_mut(group, bits, |x, y| x.gcd_mut(y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x.gcd(y));
 }
@@ -253,6 +278,8 @@ fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     bigint(group, bits, |x, y| x * y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x * y));
+    #[cfg(feature = "rug")]
+    rug_mut(group, bits, |x, y| x.mul_assign(y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x * y);
 }
@@ -262,6 +289,8 @@ fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     bigint(group, bits, |x, y| x + y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x + y));
+    #[cfg(feature = "rug")]
+    rug_mut(group, bits, |x, y| x.add_assign(y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x + y);
 }
@@ -271,6 +300,8 @@ fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     bigint(group, bits, |x, y| x / y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x / y));
+    #[cfg(feature = "rug")]
+    rug_mut(group, bits, |x, y| x.div_assign(y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x / y);
 }
