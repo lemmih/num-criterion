@@ -500,10 +500,10 @@ fn clone_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 
 fn benchmarks(c: &mut Criterion) {
     mk_benchmark(c, "gcd", gcd_group);
-    mk_benchmark(c, "*", mul_group);
-    mk_benchmark(c, "*mut", mul_mut_group);
-    mk_benchmark(c, "/", div_group);
-    mk_benchmark(c, "+", add_group);
+    mk_benchmark(c, "mul", mul_group);
+    mk_benchmark(c, "mut", mul_mut_group);
+    mk_benchmark(c, "div", div_group);
+    mk_benchmark(c, "add", add_group);
     mk_benchmark(c, "clone", clone_group);
 }
 
