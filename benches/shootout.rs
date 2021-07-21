@@ -14,6 +14,8 @@ use num_bigint::BigInt;
 use num_bigint_small::BigInt as BigIntSmall;
 #[cfg(feature = "num-bigint-small")]
 use num_bigint_small::BigIntSmall as BigIntDense;
+// #[cfg(feature = "num-bigint-small")]
+// use num_bigint_small::BigUint as BigUintSmall;
 
 use num_integer::Integer;
 #[cfg(feature = "rug")]
@@ -155,6 +157,41 @@ fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
     ((m << 1) + 1) << shift
 }
 
+fn fast_gcd_u128(mut m: u128, mut n: u128) -> u128 {
+    pub fn branch_min_diff(a: u128, b: u128) -> (u128, u128) {
+        let (t, o) = a.overflowing_sub(b);
+        if o {
+            // a<b
+            (a, !t + 1)
+        } else {
+            // a>b
+            (b, t)
+        }
+    }
+
+    // Use Stein's algorithm
+    if m == 0 || n == 0 {
+        return m | n;
+    }
+
+    let shift = (m | n).trailing_zeros();
+
+    m >>= m.trailing_zeros() + 1;
+    n >>= n.trailing_zeros() + 1;
+
+    while m != n {
+        let (n_, m_) = branch_min_diff(m, n);
+        let c = m_.trailing_zeros();
+        n = n_;
+        m = m_ >> 1;
+        m >>= c;
+        if m == n {
+            break;
+        }
+    }
+    ((m << 1) + 1) << shift
+}
+
 #[cfg(feature = "rug")]
 fn bigint_to_rug(big: BigInt) -> RugInteger {
     RugInteger::from_str_radix(&big.to_str_radix(16), 16).unwrap()
@@ -187,6 +224,7 @@ fn smallint(
     group: &mut BenchmarkGroup<'_, WallTime>,
     bits: u64,
     run: fn(_: &BigIntSmall, _: &BigIntSmall) -> BigIntSmall,
+    // run: fn(_: &BigUintSmall, _: &BigUintSmall) -> BigUintSmall,
 ) {
     use num_bigint_small::RandBigInt;
     group.bench_function("num_svec", |b| {
@@ -202,20 +240,20 @@ fn smallint(
 
 #[cfg(feature = "num-bigint-small")]
 fn denseint(
-    group: &mut BenchmarkGroup<'_, WallTime>,
-    bits: u64,
-    run: fn(_: &BigIntDense, _: &BigIntDense) -> BigIntDense,
+    _group: &mut BenchmarkGroup<'_, WallTime>,
+    _bits: u64,
+    _run: fn(_: &BigIntDense, _: &BigIntDense) -> BigIntDense,
 ) {
-    use num_bigint_small::RandBigInt;
-    group.bench_function("num_dense", |b| {
-        let mut rng = get_rng();
+    // use num_bigint_small::RandBigInt;
+    // group.bench_function("num_dense", |b| {
+    //     let mut rng = get_rng();
 
-        b.iter_batched_ref(
-            || (rng.gen_bigintsmall(bits), rng.gen_bigintsmall(bits)),
-            |(x, y)| run(x, y),
-            BatchSize::SmallInput,
-        )
-    });
+    //     b.iter_batched_ref(
+    //         || (rng.gen_bigintsmall(bits), rng.gen_bigintsmall(bits)),
+    //         |(x, y)| run(x, y),
+    //         BatchSize::SmallInput,
+    //     )
+    // });
 }
 
 #[cfg(feature = "rug")]
@@ -310,6 +348,23 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     if bits == 128 {
         uint!(group, bits, u128, |(x, y)| x.gcd(y));
     }
+    if bits == 128 {
+        use num_bigint::RandBigInt;
+        group.bench_function("branchless", |b| {
+            let mut rng = get_rng();
+            b.iter_batched_ref(
+                || {
+                    let x =
+                        u128::from_str_radix(&rng.gen_biguint(bits).to_str_radix(16), 16).unwrap();
+                    let y =
+                        u128::from_str_radix(&rng.gen_biguint(bits).to_str_radix(16), 16).unwrap();
+                    (x, y)
+                },
+                |(x, y)| fast_gcd_u128(*x, *y),
+                BatchSize::SmallInput,
+            )
+        });
+    }
     bigint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "num-bigint-small")]
     smallint(group, bits, |x, y| x.gcd(y));
@@ -344,7 +399,7 @@ fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     #[cfg(feature = "num-bigint-small")]
     smallint(group, bits, |x, y| x + y);
     #[cfg(feature = "num-bigint-small")]
-    denseint(group, bits, |x, y| x.clone());
+    denseint(group, bits, |x, _y| x.clone());
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x + y));
     #[cfg(feature = "rug")]
