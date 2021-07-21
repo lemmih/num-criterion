@@ -18,7 +18,6 @@ use num_bigint_small::BigIntSmall as BigIntDense;
 // use num_bigint_small::BigUint as BigUintSmall;
 
 use num_integer::Integer;
-#[cfg(feature = "rug")]
 use std::ops::*;
 
 #[cfg(feature = "uint")]
@@ -88,7 +87,11 @@ type BenchGroup = fn(_: &mut BenchmarkGroup<'_, WallTime>, bits: u64);
 
 fn mk_benchmark(c: &mut Criterion, name: &str, run_group: BenchGroup) {
     for &bits in [64, 128, 1024, 4096, 32768].iter() {
-        let mut group = c.benchmark_group(format!("{}/{}bits", name, bits));
+        let mut group = if bits == 64 {
+            c.benchmark_group(format!("{}/{}bits", name, bits))
+        } else {
+            c.benchmark_group(format!("{}/{}", name, bits))
+        };
         run_group(&mut group, bits);
         group.finish();
     }
@@ -96,7 +99,8 @@ fn mk_benchmark(c: &mut Criterion, name: &str, run_group: BenchGroup) {
 
 type GCD = u64;
 fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
-    pub fn branch_min_diff(a: GCD, b: GCD) -> (GCD, GCD) {
+    // min_diff(a,b) = (min(a,b), |a-b|)
+    pub fn min_diff(a: GCD, b: GCD) -> (GCD, GCD) {
         let (t, o) = a.overflowing_sub(b);
         if o {
             // a<b
@@ -107,19 +111,6 @@ fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
         }
     }
 
-    // These aren't necessary on x86-64 or arm64.
-    // pub fn branchless_min(a: GCD, b: GCD) -> GCD {
-    //     // most-significant-bit of a and b must be 0
-    //     let t = a.wrapping_sub(b);
-    //     let mask = (t as iGCD >> (GCD::BITS - 1)) as GCD;
-    //     b.wrapping_add(t & mask)
-    // }
-    // pub fn branchless_diff(a: GCD, b: GCD) -> GCD {
-    //     // most-significant-bit of a and b must be 0
-    //     let t = a.wrapping_sub(b);
-    //     let mask = (t as iGCD >> (GCD::BITS - 1)) as GCD;
-    //     (t ^ mask).wrapping_sub(mask)
-    // }
     // Use Stein's algorithm
     if m == 0 || n == 0 {
         return m | n;
@@ -128,24 +119,17 @@ fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
     // find common factors of 2
     let shift = (m | n).trailing_zeros();
 
-    // dbg!(shift);
-
     // divide n and m by 2 until odd
-    // Then
-    m >>= m.trailing_zeros() + 1;
-    n >>= n.trailing_zeros() + 1;
+    m >>= m.trailing_zeros();
+    n >>= n.trailing_zeros();
 
     while m != n {
-        let (n_, m_) = branch_min_diff(m, n);
-        // let n_ = branchless_min(m, n);
-        // let m_ = branchless_diff(m, n);
-        let c = m_.trailing_zeros();
+        // New code:
+        let (n_, m_) = min_diff(m, n);
         n = n_;
-        m = m_ >> 1;
-        m >>= c;
-        if m == n {
-            break;
-        }
+        m = m_ >> m_.trailing_zeros();
+
+        // Old code:
         // if m > n {
         //     m -= n;
         //     m >>= m.trailing_zeros();
@@ -154,11 +138,11 @@ fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
         //     n >>= n.trailing_zeros();
         // }
     }
-    ((m << 1) + 1) << shift
+    m << shift
 }
 
 fn fast_gcd_u128(mut m: u128, mut n: u128) -> u128 {
-    pub fn branch_min_diff(a: u128, b: u128) -> (u128, u128) {
+    pub fn min_diff(a: u128, b: u128) -> (u128, u128) {
         let (t, o) = a.overflowing_sub(b);
         if o {
             // a<b
@@ -174,22 +158,29 @@ fn fast_gcd_u128(mut m: u128, mut n: u128) -> u128 {
         return m | n;
     }
 
+    // find common factors of 2
     let shift = (m | n).trailing_zeros();
 
-    m >>= m.trailing_zeros() + 1;
-    n >>= n.trailing_zeros() + 1;
+    // divide n and m by 2 until odd
+    m >>= m.trailing_zeros();
+    n >>= n.trailing_zeros();
 
     while m != n {
-        let (n_, m_) = branch_min_diff(m, n);
-        let c = m_.trailing_zeros();
+        // New code:
+        let (n_, m_) = min_diff(m, n);
         n = n_;
-        m = m_ >> 1;
-        m >>= c;
-        if m == n {
-            break;
-        }
+        m = m_ >> m_.trailing_zeros();
+
+        // Old code:
+        // if m > n {
+        //     m -= n;
+        //     m >>= m.trailing_zeros();
+        // } else {
+        //     n -= m;
+        //     n >>= n.trailing_zeros();
+        // }
     }
-    ((m << 1) + 1) << shift
+    m << shift
 }
 
 #[cfg(feature = "rug")]
@@ -219,11 +210,47 @@ fn bigint(
     });
 }
 
+fn bigint_mut(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &mut BigInt, _: &BigInt),
+) {
+    use num_bigint::RandBigInt;
+    group.bench_function("num", |b| {
+        let mut rng = get_rng();
+
+        b.iter_batched_ref(
+            || (rng.gen_bigint(bits), rng.gen_bigint(bits)),
+            |(x, y)| run(x, y),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
 #[cfg(feature = "num-bigint-small")]
 fn smallint(
     group: &mut BenchmarkGroup<'_, WallTime>,
     bits: u64,
     run: fn(_: &BigIntSmall, _: &BigIntSmall) -> BigIntSmall,
+    // run: fn(_: &BigUintSmall, _: &BigUintSmall) -> BigUintSmall,
+) {
+    use num_bigint_small::RandBigInt;
+    group.bench_function("num_svec", |b| {
+        let mut rng = get_rng();
+
+        b.iter_batched_ref(
+            || (rng.gen_bigint(bits), rng.gen_bigint(bits)),
+            |(x, y)| run(x, y),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
+#[cfg(feature = "num-bigint-small")]
+fn smallint_mut(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &mut BigIntSmall, _: &BigIntSmall),
     // run: fn(_: &BigUintSmall, _: &BigUintSmall) -> BigUintSmall,
 ) {
     use num_bigint_small::RandBigInt;
@@ -321,6 +348,27 @@ fn ramp(
     });
 }
 
+#[cfg(feature = "ramp")]
+fn ramp_mut(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &mut RampInt, _: &RampInt),
+) {
+    group.bench_function("ramp", |b| {
+        let mut rng = get_rng();
+        b.iter_batched_ref(
+            || {
+                (
+                    bigint_to_ramp(rng.gen_bigint(bits)),
+                    bigint_to_ramp(rng.gen_bigint(bits)),
+                )
+            },
+            |(x, y)| run(x, y),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Groups
 
@@ -372,8 +420,6 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     denseint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x.gcd_ref(y)));
-    #[cfg(feature = "rug")]
-    rug_mut(group, bits, |x, y| x.gcd_mut(y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x.gcd(y));
 }
@@ -387,10 +433,19 @@ fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     denseint(group, bits, |x, y| x * y);
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x * y));
+    #[cfg(feature = "ramp")]
+    ramp(group, bits, |x, y| x * y);
+}
+
+fn mul_mut_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
+    // uint_all!(group, bits, |(x, y)| x.overflowing_mul(*y));
+    bigint_mut(group, bits, |x, y| x.mul_assign(y));
+    #[cfg(feature = "num-bigint-small")]
+    smallint_mut(group, bits, |x, y| x.mul_assign(y));
     #[cfg(feature = "rug")]
     rug_mut(group, bits, |x, y| x.mul_assign(y));
     #[cfg(feature = "ramp")]
-    ramp(group, bits, |x, y| x * y);
+    ramp_mut(group, bits, |x, y| x.mul_assign(y));
 }
 
 fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
@@ -402,8 +457,6 @@ fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     denseint(group, bits, |x, _y| x.clone());
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x + y));
-    #[cfg(feature = "rug")]
-    rug_mut(group, bits, |x, y| x.add_assign(y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x + y);
 }
@@ -421,8 +474,6 @@ fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| RugInteger::from(x / y));
-    #[cfg(feature = "rug")]
-    rug_mut(group, bits, |x, y| x.div_assign(y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x / y);
 }
@@ -449,9 +500,10 @@ fn clone_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 
 fn benchmarks(c: &mut Criterion) {
     mk_benchmark(c, "gcd", gcd_group);
-    mk_benchmark(c, "mul", mul_group);
-    mk_benchmark(c, "div", div_group);
-    mk_benchmark(c, "add", add_group);
+    mk_benchmark(c, "*", mul_group);
+    mk_benchmark(c, "*mut", mul_mut_group);
+    mk_benchmark(c, "/", div_group);
+    mk_benchmark(c, "+", add_group);
     mk_benchmark(c, "clone", clone_group);
 }
 
