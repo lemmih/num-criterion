@@ -333,6 +333,7 @@ fn ramp(
     bits: u64,
     run: fn(_: &RampInt, _: &RampInt) -> RampInt,
 ) {
+    use num_bigint::RandBigInt;
     group.bench_function("ramp", |b| {
         let mut rng = get_rng();
         b.iter_batched_ref(
@@ -354,6 +355,7 @@ fn ramp_mut(
     bits: u64,
     run: fn(_: &mut RampInt, _: &RampInt),
 ) {
+    use num_bigint::RandBigInt;
     group.bench_function("ramp", |b| {
         let mut rng = get_rng();
         b.iter_batched_ref(
@@ -492,7 +494,7 @@ fn clone_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     #[cfg(feature = "rug")]
     rug(group, bits, |x, _y| RugInteger::from(x));
     #[cfg(feature = "ramp")]
-    ramp(group, bits, |x, _y| x);
+    ramp(group, bits, |x, _y| x.clone());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
