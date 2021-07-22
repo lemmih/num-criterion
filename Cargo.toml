@@ -36,6 +36,7 @@ harness = false
 name    = "shootout"
 
 [features]
+smallvec = [ "num-bigint-small" ]
 default = [ "rug", "uint", "num-bigint-small" ]
 
 [dependencies]

@@ -14,8 +14,9 @@ use num_bigint::BigInt;
 use num_bigint_small::BigInt as BigIntSmall;
 #[cfg(feature = "num-bigint-small")]
 use num_bigint_small::BigIntSmall as BigIntDense;
-// #[cfg(feature = "num-bigint-small")]
-// use num_bigint_small::BigUint as BigUintSmall;
+#[cfg(feature = "num-bigint-small")]
+#[allow(unused_imports)]
+use num_bigint_small::BigUint as BigUintSmall;
 
 use num_integer::Integer;
 use std::ops::*;

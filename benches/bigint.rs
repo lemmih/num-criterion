@@ -1,5 +1,8 @@
 use criterion::{criterion_group, criterion_main, Bencher, Criterion};
+#[cfg(not(feature = "smallvec"))]
 use num_bigint::{BigInt, BigUint, RandBigInt};
+#[cfg(feature = "smallvec")]
+use num_bigint_small::{BigInt, BigUint, RandBigInt};
 use num_traits::{FromPrimitive, Num, One, Zero};
 use std::mem::replace;
 
