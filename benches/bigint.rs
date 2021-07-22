@@ -150,7 +150,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     {
         let mut group = c.benchmark_group("to_str_radix");
         group.bench_function("02", |b| to_str_radix_bench(b, 2));
-        group.bench_function("02", |b| to_str_radix_bench(b, 8));
+        group.bench_function("08", |b| to_str_radix_bench(b, 8));
         group.bench_function("10", |b| to_str_radix_bench(b, 10));
         group.bench_function("16", |b| to_str_radix_bench(b, 16));
         group.bench_function("36", |b| to_str_radix_bench(b, 36));
