@@ -30,17 +30,21 @@ fn euclid(x: &BigUint, y: &BigUint) -> BigUint {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("gcd_euclid_0064", |b| bench(b, 64, euclid));
-    c.bench_function("gcd_euclid_0256", |b| bench(b, 256, euclid));
-    c.bench_function("gcd_euclid_1024", |b| bench(b, 1024, euclid));
-    c.bench_function("gcd_euclid_4096", |b| bench(b, 4096, euclid));
+    {
+        let mut group = c.benchmark_group("gcd_euclid");
+        group.bench_function("0064", |b| bench(b, 64, euclid));
+        group.bench_function("0256", |b| bench(b, 256, euclid));
+        group.bench_function("1024", |b| bench(b, 1024, euclid));
+        group.bench_function("4096", |b| bench(b, 4096, euclid));
+    }
 
-    // Integer for BigUint now uses Stein for gcd
-
-    c.bench_function("gcd_stein_0064", |b| bench(b, 64, BigUint::gcd));
-    c.bench_function("gcd_stein_0256", |b| bench(b, 256, BigUint::gcd));
-    c.bench_function("gcd_stein_1024", |b| bench(b, 1024, BigUint::gcd));
-    c.bench_function("gcd_stein_4096", |b| bench(b, 4096, BigUint::gcd));
+    {
+        let mut group = c.benchmark_group("gcd_stein");
+        group.bench_function("0064", |b| bench(b, 64, BigUint::gcd));
+        group.bench_function("0256", |b| bench(b, 256, BigUint::gcd));
+        group.bench_function("1024", |b| bench(b, 1024, BigUint::gcd));
+        group.bench_function("4096", |b| bench(b, 4096, BigUint::gcd));
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);

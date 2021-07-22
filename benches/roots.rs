@@ -57,31 +57,46 @@ fn bench_cbrt(b: &mut Bencher, bits: u64) {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("big64_sqrt", |b| bench_sqrt(b, 64));
-    c.bench_function("big1k_sqrt", |b| bench_sqrt(b, 1024));
-    c.bench_function("big2k_sqrt", |b| bench_sqrt(b, 2048));
-    c.bench_function("big4k_sqrt", |b| bench_sqrt(b, 4096));
+    {
+        let mut group = c.benchmark_group("sqrt");
+        group.bench_function("64", |b| bench_sqrt(b, 64));
+        group.bench_function("1k", |b| bench_sqrt(b, 1024));
+        group.bench_function("2k", |b| bench_sqrt(b, 2048));
+        group.bench_function("4k", |b| bench_sqrt(b, 4096));
+    }
 
-    c.bench_function("big64_cbrt", |b| bench_cbrt(b, 64));
-    c.bench_function("big1k_cbrt", |b| bench_cbrt(b, 1024));
-    c.bench_function("big2k_cbrt", |b| bench_cbrt(b, 2048));
-    c.bench_function("big4k_cbrt", |b| bench_cbrt(b, 4096));
+    {
+        let mut group = c.benchmark_group("cbrt");
+        group.bench_function("64", |b| bench_cbrt(b, 64));
+        group.bench_function("1k", |b| bench_cbrt(b, 1024));
+        group.bench_function("2k", |b| bench_cbrt(b, 2048));
+        group.bench_function("4k", |b| bench_cbrt(b, 4096));
+    }
 
-    c.bench_function("big64_nth_10", |b| bench_nth_root(b, 64, 10));
-    c.bench_function("big1k_nth_10", |b| bench_nth_root(b, 1024, 10));
-    c.bench_function("big1k_nth_100", |b| bench_nth_root(b, 1024, 100));
-    c.bench_function("big1k_nth_1000", |b| bench_nth_root(b, 1024, 1000));
-    c.bench_function("big1k_nth_10000", |b| bench_nth_root(b, 1024, 10000));
+    {
+        let mut group = c.benchmark_group("cbrt");
+        group.bench_function("64_nth_10", |b| bench_nth_root(b, 64, 10));
+        group.bench_function("1k_nth_10", |b| bench_nth_root(b, 1024, 10));
+        group.bench_function("1k_nth_100", |b| bench_nth_root(b, 1024, 100));
+        group.bench_function("1k_nth_1000", |b| bench_nth_root(b, 1024, 1000));
+        group.bench_function("1k_nth_10000", |b| bench_nth_root(b, 1024, 10000));
+    }
 
-    c.bench_function("big2k_nth_10", |b| bench_nth_root(b, 2048, 10));
-    c.bench_function("big2k_nth_100", |b| bench_nth_root(b, 2048, 100));
-    c.bench_function("big2k_nth_1000", |b| bench_nth_root(b, 2048, 1000));
-    c.bench_function("big2k_nth_10000", |b| bench_nth_root(b, 2048, 10000));
+    {
+        let mut group = c.benchmark_group("cbrt");
+        group.bench_function("2k_nth_10", |b| bench_nth_root(b, 2048, 10));
+        group.bench_function("2k_nth_100", |b| bench_nth_root(b, 2048, 100));
+        group.bench_function("2k_nth_1000", |b| bench_nth_root(b, 2048, 1000));
+        group.bench_function("2k_nth_10000", |b| bench_nth_root(b, 2048, 10000));
+    }
 
-    c.bench_function("big4k_nth_10", |b| bench_nth_root(b, 4096, 10));
-    c.bench_function("big4k_nth_100", |b| bench_nth_root(b, 4096, 100));
-    c.bench_function("big4k_nth_1000", |b| bench_nth_root(b, 4096, 1000));
-    c.bench_function("big4k_nth_10000", |b| bench_nth_root(b, 4096, 10000));
+    {
+        let mut group = c.benchmark_group("cbrt");
+        group.bench_function("4k_nth_10", |b| bench_nth_root(b, 4096, 10));
+        group.bench_function("4k_nth_100", |b| bench_nth_root(b, 4096, 100));
+        group.bench_function("4k_nth_1000", |b| bench_nth_root(b, 4096, 1000));
+        group.bench_function("4k_nth_10000", |b| bench_nth_root(b, 4096, 10000));
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);

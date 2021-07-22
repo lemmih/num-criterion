@@ -98,32 +98,44 @@ const RFC3526_2048BIT_MODP_GROUP: &str = "\
                                           15728E5A_8AACAA68_FFFFFFFF_FFFFFFFF";
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("multiply_0", |b| multiply_bench(b, 1 << 8, 1 << 8));
-    c.bench_function("multiply_1", |b| multiply_bench(b, 1 << 8, 1 << 16));
-    c.bench_function("multiply_2", |b| multiply_bench(b, 1 << 16, 1 << 16));
-    c.bench_function("multiply_3", |b| multiply_bench(b, 1 << 16, 1 << 17));
+    {
+        let mut group = c.benchmark_group("multiply");
+        group.bench_function("0", |b| multiply_bench(b, 1 << 8, 1 << 8));
+        group.bench_function("1", |b| multiply_bench(b, 1 << 8, 1 << 16));
+        group.bench_function("2", |b| multiply_bench(b, 1 << 16, 1 << 16));
+        group.bench_function("3", |b| multiply_bench(b, 1 << 16, 1 << 17));
+    }
 
-    c.bench_function("divide_0", |b| divide_bench(b, 1 << 8, 1 << 6));
-    c.bench_function("divide_1", |b| divide_bench(b, 1 << 12, 1 << 8));
-    c.bench_function("divide_2", |b| divide_bench(b, 1 << 16, 1 << 12));
+    {
+        let mut group = c.benchmark_group("divide");
+        group.bench_function("0", |b| divide_bench(b, 1 << 8, 1 << 6));
+        group.bench_function("1", |b| divide_bench(b, 1 << 12, 1 << 8));
+        group.bench_function("2", |b| divide_bench(b, 1 << 16, 1 << 12));
+        group.bench_function("big_little", |b| divide_bench(b, 1 << 16, 1 << 4));
+    }
 
-    c.bench_function("divide_big_little", |b| divide_bench(b, 1 << 16, 1 << 4));
-
-    c.bench_function("remainder_0", |b| remainder_bench(b, 1 << 8, 1 << 6));
-    c.bench_function("remainder_1", |b| remainder_bench(b, 1 << 12, 1 << 8));
-    c.bench_function("remainder_2", |b| remainder_bench(b, 1 << 16, 1 << 12));
-    c.bench_function("remainder_big_little", |b| {
-        remainder_bench(b, 1 << 16, 1 << 4)
-    });
+    {
+        let mut group = c.benchmark_group("remainder");
+        group.bench_function("0", |b| remainder_bench(b, 1 << 8, 1 << 6));
+        group.bench_function("1", |b| remainder_bench(b, 1 << 12, 1 << 8));
+        group.bench_function("2", |b| remainder_bench(b, 1 << 16, 1 << 12));
+        group.bench_function("big_little", |b| remainder_bench(b, 1 << 16, 1 << 4));
+    }
 
     c.bench_function("factorial_100", |b| b.iter(|| factorial(100)));
 
-    c.bench_function("fib_100", |b| b.iter(|| fib(100)));
-    c.bench_function("fib_1000", |b| b.iter(|| fib(1000)));
-    c.bench_function("fib_10000", |b| b.iter(|| fib(10000)));
-    c.bench_function("fib2_100", |b| b.iter(|| fib2(100)));
-    c.bench_function("fib2_1000", |b| b.iter(|| fib2(1000)));
-    c.bench_function("fib2_10000", |b| b.iter(|| fib2(10000)));
+    {
+        let mut group = c.benchmark_group("fib");
+        group.bench_function("100", |b| b.iter(|| fib(100)));
+        group.bench_function("1000", |b| b.iter(|| fib(1000)));
+        group.bench_function("10000", |b| b.iter(|| fib(10000)));
+    }
+    {
+        let mut group = c.benchmark_group("fib2");
+        group.bench_function("100", |b| b.iter(|| fib2(100)));
+        group.bench_function("1000", |b| b.iter(|| fib2(1000)));
+        group.bench_function("10000", |b| b.iter(|| fib2(10000)));
+    }
 
     c.bench_function("fac_to_string", |b| {
         let fac = factorial(100);
@@ -135,26 +147,35 @@ fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| fib.to_string());
     });
 
-    c.bench_function("to_str_radix_02", |b| to_str_radix_bench(b, 2));
-    c.bench_function("to_str_radix_02", |b| to_str_radix_bench(b, 8));
-    c.bench_function("to_str_radix_10", |b| to_str_radix_bench(b, 10));
-    c.bench_function("to_str_radix_16", |b| to_str_radix_bench(b, 16));
-    c.bench_function("to_str_radix_36", |b| to_str_radix_bench(b, 36));
+    {
+        let mut group = c.benchmark_group("to_str_radix");
+        group.bench_function("02", |b| to_str_radix_bench(b, 2));
+        group.bench_function("02", |b| to_str_radix_bench(b, 8));
+        group.bench_function("10", |b| to_str_radix_bench(b, 10));
+        group.bench_function("16", |b| to_str_radix_bench(b, 16));
+        group.bench_function("36", |b| to_str_radix_bench(b, 36));
+    }
 
-    c.bench_function("from_str_radix_02", |b| from_str_radix_bench(b, 2));
-    c.bench_function("from_str_radix_08", |b| from_str_radix_bench(b, 8));
-    c.bench_function("from_str_radix_10", |b| from_str_radix_bench(b, 10));
-    c.bench_function("from_str_radix_16", |b| from_str_radix_bench(b, 16));
-    c.bench_function("from_str_radix_36", |b| from_str_radix_bench(b, 36));
+    {
+        let mut group = c.benchmark_group("from_str_radix");
+        group.bench_function("from_str_radix_02", |b| from_str_radix_bench(b, 2));
+        group.bench_function("from_str_radix_08", |b| from_str_radix_bench(b, 8));
+        group.bench_function("from_str_radix_10", |b| from_str_radix_bench(b, 10));
+        group.bench_function("from_str_radix_16", |b| from_str_radix_bench(b, 16));
+        group.bench_function("from_str_radix_36", |b| from_str_radix_bench(b, 36));
+    }
 
-    c.bench_function("rand_64", |b| rand_bench(b, 1 << 6));
-    c.bench_function("rand_256", |b| rand_bench(b, 1 << 8));
-    c.bench_function("rand_1009", |b| rand_bench(b, 1009));
-    c.bench_function("rand_2048", |b| rand_bench(b, 1 << 11));
-    c.bench_function("rand_4096", |b| rand_bench(b, 1 << 12));
-    c.bench_function("rand_8192", |b| rand_bench(b, 1 << 13));
-    c.bench_function("rand_65536", |b| rand_bench(b, 1 << 16));
-    c.bench_function("rand_131072", |b| rand_bench(b, 1 << 17));
+    {
+        let mut group = c.benchmark_group("rand");
+        group.bench_function("64", |b| rand_bench(b, 1 << 6));
+        group.bench_function("256", |b| rand_bench(b, 1 << 8));
+        group.bench_function("1009", |b| rand_bench(b, 1009));
+        group.bench_function("2048", |b| rand_bench(b, 1 << 11));
+        group.bench_function("4096", |b| rand_bench(b, 1 << 12));
+        group.bench_function("8192", |b| rand_bench(b, 1 << 13));
+        group.bench_function("65536", |b| rand_bench(b, 1 << 16));
+        group.bench_function("131072", |b| rand_bench(b, 1 << 17));
+    }
 
     c.bench_function("shl", |b| {
         let n = BigUint::one() << 1000u32;
@@ -201,82 +222,87 @@ fn criterion_benchmark(c: &mut Criterion) {
         });
     });
 
-    c.bench_function("pow_bench_bigexp", |b| {
-        use num_traits::Pow;
+    {
+        let mut group = c.benchmark_group("pow");
+        group.bench_function("pow_bench_bigexp", |b| {
+            use num_traits::Pow;
 
-        b.iter(|| {
-            let upper = 100_u32;
-            let mut i_big = BigUint::from(1u32);
-            for _i in 2..=upper {
-                i_big += 1u32;
-                let mut j_big = BigUint::from(1u32);
-                for _j in 2..=upper {
-                    j_big += 1u32;
-                    Pow::pow(&i_big, &j_big);
+            b.iter(|| {
+                let upper = 100_u32;
+                let mut i_big = BigUint::from(1u32);
+                for _i in 2..=upper {
+                    i_big += 1u32;
+                    let mut j_big = BigUint::from(1u32);
+                    for _j in 2..=upper {
+                        j_big += 1u32;
+                        Pow::pow(&i_big, &j_big);
+                    }
                 }
-            }
+            });
         });
-    });
 
-    c.bench_function("pow_bench_1e1000", |b| {
-        b.iter(|| BigUint::from(10u32).pow(1_000));
-    });
+        group.bench_function("1e1000", |b| {
+            b.iter(|| BigUint::from(10u32).pow(1_000));
+        });
 
-    c.bench_function("pow_bench_1e10000", |b| {
-        b.iter(|| BigUint::from(10u32).pow(10_000));
-    });
+        group.bench_function("1e10000", |b| {
+            b.iter(|| BigUint::from(10u32).pow(10_000));
+        });
 
-    c.bench_function("pow_bench_1e100000", |b| {
-        b.iter(|| BigUint::from(10u32).pow(100_000));
-    });
+        group.bench_function("1e100000", |b| {
+            b.iter(|| BigUint::from(10u32).pow(100_000));
+        });
 
-    // c.bench_function("", |b|
-    c.bench_function("modpow", |b| {
-        let mut rng = get_rng();
-        let base = rng.gen_biguint(2048);
-        let e = rng.gen_biguint(2048);
-        let m = BigUint::from_str_radix(RFC3526_2048BIT_MODP_GROUP, 16).unwrap();
+        group.bench_function("modpow", |b| {
+            let mut rng = get_rng();
+            let base = rng.gen_biguint(2048);
+            let e = rng.gen_biguint(2048);
+            let m = BigUint::from_str_radix(RFC3526_2048BIT_MODP_GROUP, 16).unwrap();
 
-        b.iter(|| base.modpow(&e, &m));
-    });
+            b.iter(|| base.modpow(&e, &m));
+        });
 
-    c.bench_function("modpow_even", |b| {
-        let mut rng = get_rng();
-        let base = rng.gen_biguint(2048);
-        let e = rng.gen_biguint(2048);
-        // Make the modulus even, so monty (base-2^32) doesn't apply.
-        let m = BigUint::from_str_radix(RFC3526_2048BIT_MODP_GROUP, 16).unwrap() - 1u32;
+        group.bench_function("modpow_even", |b| {
+            let mut rng = get_rng();
+            let base = rng.gen_biguint(2048);
+            let e = rng.gen_biguint(2048);
+            // Make the modulus even, so monty (base-2^32) doesn't apply.
+            let m = BigUint::from_str_radix(RFC3526_2048BIT_MODP_GROUP, 16).unwrap() - 1u32;
 
-        b.iter(|| base.modpow(&e, &m));
-    });
+            b.iter(|| base.modpow(&e, &m));
+        });
+    }
 
-    c.bench_function("to_u32_digits", |b| {
-        let mut rng = get_rng();
-        let n = rng.gen_biguint(2048);
+    {
+        let mut group = c.benchmark_group("iters");
+        group.bench_function("to_u32_digits", |b| {
+            let mut rng = get_rng();
+            let n = rng.gen_biguint(2048);
 
-        b.iter(|| n.to_u32_digits());
-    });
+            b.iter(|| n.to_u32_digits());
+        });
 
-    c.bench_function("iter_u32_digits", |b| {
-        let mut rng = get_rng();
-        let n = rng.gen_biguint(2048);
+        group.bench_function("iter_u32_digits", |b| {
+            let mut rng = get_rng();
+            let n = rng.gen_biguint(2048);
 
-        b.iter(|| n.iter_u32_digits().max());
-    });
+            b.iter(|| n.iter_u32_digits().max());
+        });
 
-    c.bench_function("to_u64_digits", |b| {
-        let mut rng = get_rng();
-        let n = rng.gen_biguint(2048);
+        group.bench_function("to_u64_digits", |b| {
+            let mut rng = get_rng();
+            let n = rng.gen_biguint(2048);
 
-        b.iter(|| n.to_u64_digits());
-    });
+            b.iter(|| n.to_u64_digits());
+        });
 
-    c.bench_function("iter_u64_digits", |b| {
-        let mut rng = get_rng();
-        let n = rng.gen_biguint(2048);
+        group.bench_function("iter_u64_digits", |b| {
+            let mut rng = get_rng();
+            let n = rng.gen_biguint(2048);
 
-        b.iter(|| n.iter_u64_digits().max());
-    });
+            b.iter(|| n.iter_u64_digits().max());
+        });
+    }
 }
 
 criterion_group!(benches, criterion_benchmark);
