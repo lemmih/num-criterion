@@ -453,20 +453,33 @@ fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 }
 
 fn clone_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
-    uint_all!(group, bits, |(x, _y)| x);
+    uint_all!(group, bits, |(x, _y)| *x);
 
     bigint(group, bits, |x, _y| x.clone());
 
     #[cfg(feature = "num-bigint-small")]
     smallint(group, bits, |x, _y| x.clone());
 
-    #[cfg(feature = "num-bigint-small")]
-    denseint(group, bits, |x, _y| x.clone());
-
     #[cfg(feature = "rug")]
     rug(group, bits, |x, _y| RugInteger::from(x));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, _y| x.clone());
+}
+
+fn shr_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
+    const SHIFT: u32 = 11;
+
+    // uint_all!(group, bits, |(x, _y)| x >> SHIFT);
+
+    bigint_mut(group, bits, |x, _y| *x >>= SHIFT);
+
+    #[cfg(feature = "num-bigint-small")]
+    smallint_mut(group, bits, |x, _y| *x >>= SHIFT);
+
+    #[cfg(feature = "rug")]
+    rug_mut(group, bits, |x, _y| *x >>= SHIFT);
+    #[cfg(feature = "ramp")]
+    ramp_mut(group, bits, |x, _y| *x >>= SHIFT as usize);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -478,6 +491,7 @@ fn benchmarks(c: &mut Criterion) {
     mk_benchmark(c, "mut", mul_mut_group);
     mk_benchmark(c, "div", div_group);
     mk_benchmark(c, "add", add_group);
+    mk_benchmark(c, "shr", shr_group);
     mk_benchmark(c, "clone", clone_group);
 }
 
