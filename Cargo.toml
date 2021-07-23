@@ -37,6 +37,7 @@ name    = "shootout"
 
 [features]
 smallvec = [ "num-bigint-small" ]
+union = [ "num-bigint-small/union" ]
 default = [ "rug", "uint", "num-bigint-small" ]
 
 [dependencies]
