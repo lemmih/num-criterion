@@ -65,6 +65,16 @@ fn fib2(n: usize) -> BigUint {
     f0
 }
 
+fn fib_u128(n: usize) -> u128 {
+    let mut f0: u128 = Zero::zero();
+    let mut f1: u128 = One::one();
+    for _ in 0..n {
+        f1 = f1.checked_add(f0).unwrap();
+        f0 = f1.checked_sub(f0).unwrap();
+    }
+    f0
+}
+
 fn to_str_radix_bench(b: &mut Bencher, radix: u32) {
     let mut rng = get_rng();
     let x = rng.gen_bigint(1009);
@@ -139,6 +149,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         group.bench_function("1000", |b| b.iter(|| fib2(1000)));
         group.bench_function("10000", |b| b.iter(|| fib2(10000)));
     }
+    c.bench_function("fib_u128", |b| b.iter(|| fib_u128(100)));
 
     c.bench_function("fac_to_string", |b| {
         let fac = factorial(100);
