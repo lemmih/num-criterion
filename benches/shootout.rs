@@ -66,18 +66,18 @@ macro_rules! uint {
 macro_rules! uint_all {
     ( $group: ident, $bits: ident, $run: expr) => {
         if $bits == 64 {
-            uint!($group, $bits, u64, |(x, y)| x.checked_div(*y));
+            uint!($group, $bits, u64, $run);
         }
         if $bits == 128 {
-            uint!($group, $bits, u128, |(x, y)| x.checked_div(*y));
+            uint!($group, $bits, u128, $run);
         }
         #[cfg(feature = "uint")]
         if $bits == 1024 {
-            uint!($group, $bits, U1024, |(x, y)| x.checked_div(*y));
+            uint!($group, $bits, U1024, $run);
         }
         #[cfg(feature = "uint")]
         if $bits == 4096 {
-            uint!($group, $bits, U4096, |(x, y)| x.checked_div(*y));
+            uint!($group, $bits, U4096, $run);
         }
     };
 }
