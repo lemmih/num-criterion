@@ -21,8 +21,6 @@ fn main() {
     bit_sizes.sort();
     bit_sizes.dedup();
 
-    const BACKEND_WIDTH: usize = 8;
-
     for bench in benches {
         let backends: Vec<&str> = {
             let mut set = HashSet::new();
