@@ -25,6 +25,9 @@ use rug::Integer as RugInteger;
 #[cfg(feature = "ramp")]
 use ramp::int::Int as RampInt;
 
+#[cfg(feature = "ibig")]
+use ibig::{IBig, UBig};
+
 mod rng;
 // use rand::RngCore;
 use rng::get_rng;
@@ -189,6 +192,48 @@ fn bigint_to_ramp(big: BigInt) -> RampInt {
     RampInt::from_str_radix(&big.to_str_radix(16), 16).unwrap()
 }
 
+#[cfg(feature = "ibig")]
+fn bigint_to_ibig(big: BigInt) -> IBig {
+    IBig::from_str_radix(&big.to_str_radix(16), 16).unwrap()
+}
+
+#[cfg(feature = "ibig")]
+fn biguint_to_ubig(big: BigUint) -> UBig {
+    UBig::from_str_radix(&big.to_str_radix(16), 16).unwrap()
+}
+
+// Copied from num-integer.
+#[cfg(feature = "ibig")]
+fn gcd_ubig(m: &UBig, n: &UBig) -> UBig {
+    use num_traits::identities::Zero;
+    // Use Stein's algorithm
+    let mut m = m.clone();
+    let mut n = n.clone();
+    if m.is_zero() || n.is_zero() {
+        return m | n;
+    }
+
+    // find common factors of 2
+    let m_zeros = m.trailing_zeros().unwrap_or(0);
+    let n_zeros = n.trailing_zeros().unwrap_or(0);
+    let shift = std::cmp::min(m_zeros, n_zeros);
+
+    // divide n and m by 2 until odd
+    m >>= m_zeros;
+    n >>= n_zeros;
+
+    while &m != &n {
+        if m > n {
+            m -= &n;
+            m >>= m.trailing_zeros().unwrap_or(0);
+        } else {
+            n -= &m;
+            n >>= n.trailing_zeros().unwrap_or(0);
+        }
+    }
+    m << shift
+}
+
 fn bigint<X>(
     group: &mut BenchmarkGroup<'_, WallTime>,
     bits: u64,
@@ -303,6 +348,50 @@ fn ramp<X>(
     });
 }
 
+#[cfg(feature = "ibig")]
+fn ibig<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &mut IBig, _: &IBig) -> X,
+) {
+    use num_bigint::RandBigInt;
+    group.bench_function("ibig", |b| {
+        let mut rng = get_rng();
+        b.iter_batched_ref(
+            || {
+                (
+                    bigint_to_ibig(rng.gen_bigint(bits)),
+                    bigint_to_ibig(rng.gen_bigint(bits)),
+                )
+            },
+            |(x, y)| run(x, y),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
+#[cfg(feature = "ibig")]
+fn ubig<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: fn(_: &mut UBig, _: &UBig) -> X,
+) {
+    use num_bigint::RandBigInt;
+    group.bench_function("ubig", |b| {
+        let mut rng = get_rng();
+        b.iter_batched_ref(
+            || {
+                (
+                    biguint_to_ubig(rng.gen_biguint(bits)),
+                    biguint_to_ubig(rng.gen_biguint(bits)),
+                )
+            },
+            |(x, y)| run(x, y),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Groups
 
@@ -347,13 +436,20 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
             )
         });
     }
+
     bigint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "num-bigint-small")]
+
     smallint(group, bits, |x, y| x.gcd(y));
     #[cfg(feature = "rug")]
+
     rug(group, bits, |x, y| RugInteger::from(x.gcd_ref(y)));
+
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x.gcd(y));
+
+    #[cfg(feature = "ibig")]
+    ubig(group, bits, |x, y| gcd_ubig(x,y));
 }
 
 fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
@@ -372,17 +468,32 @@ fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| &*x * y);
+
+    #[cfg(feature = "ibig")]
+    ibig(group, bits, |x, y| &*x * y);
+
+    #[cfg(feature = "ibig")]
+    ubig(group, bits, |x, y| &*x * y);
 }
 
 fn mula_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     // uint_all!(group, bits, |(x, y)| x.overflowing_mul(*y));
     bigint(group, bits, |x, y| x.mul_assign(y));
+
     #[cfg(feature = "num-bigint-small")]
     smallint(group, bits, |x, y| x.mul_assign(y));
+
     #[cfg(feature = "rug")]
     rug(group, bits, |x, y| x.mul_assign(y));
+
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| x.mul_assign(y));
+
+    #[cfg(feature = "ibig")]
+    ibig(group, bits, |x, y| x.mul_assign(y));
+
+    #[cfg(feature = "ibig")]
+    ubig(group, bits, |x, y| x.mul_assign(y));
 }
 
 fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
@@ -401,6 +512,12 @@ fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| &*x + y);
+
+    #[cfg(feature = "ibig")]
+    ibig(group, bits, |x, y| &*x + y);
+
+    #[cfg(feature = "ibig")]
+    ubig(group, bits, |x, y| &*x + y);
 }
 
 fn adda_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
@@ -413,6 +530,12 @@ fn adda_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     rug(group, bits, |x, y| *x += y);
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| *x += y);
+
+    #[cfg(feature = "ibig")]
+    ibig(group, bits, |x, y| *x += y);
+
+    #[cfg(feature = "ibig")]
+    ubig(group, bits, |x, y| *x += y);
 }
 
 fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
@@ -427,6 +550,12 @@ fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     rug(group, bits, |x, y| RugInteger::from(&*x / y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| &*x / y);
+
+    #[cfg(feature = "ibig")]
+    ibig(group, bits, |x, y| &*x / y);
+
+    #[cfg(feature = "ibig")]
+    ubig(group, bits, |x, y| &*x / y);
 }
 
 fn cmp_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
@@ -444,6 +573,12 @@ fn cmp_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     rug(group, bits, |x, y| (&*x).cmp(y));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, y| (&*x).cmp(y));
+
+    #[cfg(feature = "ibig")]
+    ibig(group, bits, |x, y| (&*x).cmp(y));
+
+    #[cfg(feature = "ibig")]
+    ubig(group, bits, |x, y| (&*x).cmp(y));
 }
 
 fn clone_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
@@ -461,6 +596,12 @@ fn clone_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     rug(group, bits, |x, _y| RugInteger::from(&*x));
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, _y| x.clone());
+
+    #[cfg(feature = "ibig")]
+    ibig(group, bits, |x, y| x.clone());
+
+    #[cfg(feature = "ibig")]
+    ubig(group, bits, |x, y| x.clone());
 }
 
 fn shra_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
@@ -480,6 +621,12 @@ fn shra_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     rug(group, bits, |x, _y| *x >>= SHIFT);
     #[cfg(feature = "ramp")]
     ramp(group, bits, |x, _y| *x >>= SHIFT as usize);
+
+    #[cfg(feature = "ibig")]
+    ibig(group, bits, |x, y| *x >>= SHIFT as usize);
+
+    #[cfg(feature = "ibig")]
+    ubig(group, bits, |x, y| *x >>= SHIFT as usize);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
