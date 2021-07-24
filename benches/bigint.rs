@@ -42,7 +42,7 @@ fn factorial(n: usize) -> BigUint {
     f
 }
 
-/// Compute Fibonacci numbers
+// Compute Fibonacci numbers
 fn fib(n: usize) -> BigUint {
     let mut f0: BigUint = Zero::zero();
     let mut f1: BigUint = One::one();
@@ -172,11 +172,11 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     {
         let mut group = c.benchmark_group("from_str_radix");
-        group.bench_function("from_str_radix_02", |b| from_str_radix_bench(b, 2));
-        group.bench_function("from_str_radix_08", |b| from_str_radix_bench(b, 8));
-        group.bench_function("from_str_radix_10", |b| from_str_radix_bench(b, 10));
-        group.bench_function("from_str_radix_16", |b| from_str_radix_bench(b, 16));
-        group.bench_function("from_str_radix_36", |b| from_str_radix_bench(b, 36));
+        group.bench_function("02", |b| from_str_radix_bench(b, 2));
+        group.bench_function("08", |b| from_str_radix_bench(b, 8));
+        group.bench_function("10", |b| from_str_radix_bench(b, 10));
+        group.bench_function("16", |b| from_str_radix_bench(b, 16));
+        group.bench_function("36", |b| from_str_radix_bench(b, 36));
     }
 
     {
@@ -213,7 +213,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("hahs", |b| {
+    c.bench_function("hash", |b| {
         use std::collections::HashSet;
         let mut rng = get_rng();
         let v: Vec<BigInt> = (1000..2000).map(|bits| rng.gen_bigint(bits)).collect();
@@ -238,7 +238,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     {
         let mut group = c.benchmark_group("pow");
-        group.bench_function("pow_bench_bigexp", |b| {
+        group.bench_function("bigexp", |b| {
             use num_traits::Pow;
 
             b.iter(|| {
