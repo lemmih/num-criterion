@@ -456,177 +456,77 @@ clone/32768/ubig        time:   [180.32 ns 198.58 ns 217.94 ns]
 
 ## 3950X
 
-```
-gcd/64bits/uint         time:   [167.26 ns 167.33 ns 167.41 ns]
-gcd/64bits/branchless   time:   [84.554 ns 85.160 ns 85.782 ns]
-gcd/64bits/num          time:   [1.1841 us 1.1843 us 1.1846 us]
-gcd/64bits/num_svec     time:   [1.0337 us 1.0342 us 1.0348 us]
-gcd/64bits/rug          time:   [76.743 ns 76.936 ns 77.136 ns]
-gcd/64bits/ramp         time:   [616.75 ns 617.13 ns 617.51 ns]
+|    gcd     |   uint   | branchless |   num    | num_svec |   rug    |   ramp   |   ubig   |
+|------------| -------: | ---------: | -------: | -------: | -------: | -------: | -------: |
+|    64 bits | 175.0 ns |    85.8 ns | 972.1 ns | 861.9 ns |  75.0 ns | 604.2 ns |   1.2 μs |
+|   128 bits | 603.4 ns |   396.3 ns |   1.9 μs |   1.7 μs | 216.5 ns |   1.3 μs |   3.6 μs |
+|  1024 bits |          |            |  17.4 μs |  17.0 μs |   5.4 μs |  16.0 μs |  37.8 μs |
+|  4096 bits |          |            | 113.6 μs | 106.1 μs |  25.2 μs | 172.4 μs | 225.2 μs |
+| 32768 bits |          |            |   4.5 ms |   4.4 ms | 414.0 μs |   9.7 ms |   7.4 ms |
 
-gcd/128/uint            time:   [629.01 ns 629.28 ns 629.54 ns]
-gcd/128/branchless      time:   [402.50 ns 402.65 ns 402.82 ns]
-gcd/128/num             time:   [2.3435 us 2.3442 us 2.3450 us]
-gcd/128/num_svec        time:   [2.1317 us 2.1325 us 2.1334 us]
-gcd/128/rug             time:   [222.59 ns 223.11 ns 223.58 ns]
-gcd/128/ramp            time:   [1.3134 us 1.3146 us 1.3161 us]
+|    mul     |   uint   |   num    |   unum   | num_svec | unum_svec |   rug    |   ramp   |   ibig   |   ubig   |
+|------------| -------: | -------: | -------: | -------: | --------: | -------: | -------: | -------: | -------: |
+|    64 bits |   1.6 ns |  34.0 ns |  25.2 ns |  13.9 ns |    7.6 ns |  20.4 ns |  57.2 ns |  34.0 ns |  28.9 ns |
+|   128 bits |   2.7 ns |  37.6 ns |  27.2 ns |  36.3 ns |   35.4 ns |  23.0 ns |  33.9 ns |  49.0 ns |  34.3 ns |
+|  1024 bits | 307.0 ns | 248.4 ns | 245.1 ns | 259.1 ns |  256.4 ns | 149.0 ns | 216.9 ns | 260.5 ns | 247.7 ns |
+|  4096 bits |   6.1 μs |   3.0 μs |   3.0 μs |   3.0 μs |    3.0 μs |   1.4 μs |   2.2 μs |   2.7 μs |   2.6 μs |
+| 32768 bits |          |  94.8 μs |  92.8 μs |  76.5 μs |   76.1 μs |  29.7 μs |  60.1 μs |  75.6 μs |  75.1 μs |
 
-gcd/1024/num            time:   [21.107 us 21.130 us 21.156 us]
-gcd/1024/num_svec       time:   [17.725 us 17.731 us 17.738 us]
-gcd/1024/rug            time:   [5.3528 us 5.3551 us 5.3578 us]
-gcd/1024/ramp           time:   [16.115 us 16.144 us 16.184 us]
+|    mula    |   uint   |   num    |   unum   | num_svec | unum_svec |   rug    |   ramp   |   ibig   |   ubig   |
+|------------| -------: | -------: | -------: | -------: | --------: | -------: | -------: | -------: | -------: |
+|    64 bits |   1.2 ns |  37.7 ns |  28.6 ns |  10.0 ns |    3.1 ns |   6.0 ns |  42.7 ns |  31.3 ns |  30.1 ns |
+|   128 bits |   2.5 ns |  46.9 ns |  37.1 ns |  53.5 ns |   46.5 ns |   9.2 ns |  41.8 ns |  53.4 ns |  43.1 ns |
+|  1024 bits | 295.8 ns | 274.5 ns | 256.6 ns | 277.1 ns |  274.9 ns | 203.7 ns | 249.9 ns | 285.3 ns | 272.4 ns |
+|  4096 bits |   5.9 μs |   2.9 μs |   2.9 μs |   2.9 μs |    2.9 μs |   1.4 μs |   2.2 μs |   2.6 μs |   2.6 μs |
+| 32768 bits |          |  92.5 μs |  92.8 μs |  79.0 μs |   79.6 μs |  31.0 μs |  62.0 μs |  74.4 μs |  75.0 μs |
 
-gcd/4096/num            time:   [130.29 us 130.33 us 130.37 us]
-gcd/4096/num_svec       time:   [109.74 us 109.80 us 109.88 us]
-gcd/4096/rug            time:   [25.571 us 25.577 us 25.584 us]
-gcd/4096/ramp           time:   [176.15 us 176.21 us 176.28 us]
+|    div     |   uint   |   num    |   unum   | num_svec | unum_svec |   rug    |   ramp   |   ibig   |   ubig   |
+|------------| -------: | -------: | -------: | -------: | --------: | -------: | -------: | -------: | -------: |
+|    64 bits |   3.3 ns |  57.8 ns |  46.4 ns |  32.5 ns |   17.4 ns |  34.1 ns |  38.5 ns |  12.1 ns |   6.9 ns |
+|   128 bits |  10.2 ns |  88.3 ns |  71.2 ns |  81.6 ns |   68.7 ns |  41.9 ns |  77.8 ns |  63.5 ns |  61.7 ns |
+|  1024 bits |  88.5 ns | 117.1 ns | 102.6 ns | 110.5 ns |   99.3 ns |  58.5 ns | 137.6 ns |  86.2 ns |  82.6 ns |
+|  4096 bits | 273.7 ns | 197.4 ns | 181.3 ns | 190.2 ns |  175.6 ns |  62.8 ns | 192.3 ns | 167.0 ns | 163.7 ns |
+| 32768 bits |          | 925.5 ns | 926.7 ns | 972.6 ns |  940.6 ns |  70.3 ns | 732.7 ns |   1.0 μs |   1.0 μs |
 
-gcd/32768/num           time:   [4.6917 ms 4.6933 ms 4.6952 ms]
-gcd/32768/num_svec      time:   [4.5085 ms 4.5096 ms 4.5108 ms]
-gcd/32768/rug           time:   [419.78 us 420.04 us 420.34 us]
-gcd/32768/ramp          time:   [9.9151 ms 9.9178 ms 9.9213 ms]
+|    add     |   uint   |   num    |   unum   | num_svec | unum_svec |   rug    |   ramp   |   ibig   |   ubig   |
+|------------| -------: | -------: | -------: | -------: | --------: | -------: | -------: | -------: | -------: |
+|    64 bits |   1.6 ns |  43.4 ns |  35.5 ns |  22.8 ns |   13.2 ns |  29.9 ns |  46.9 ns |  19.0 ns |  15.8 ns |
+|   128 bits |   1.6 ns |  47.9 ns |  41.2 ns |  28.9 ns |   26.2 ns |  30.3 ns |  49.4 ns |  45.9 ns |  32.3 ns |
+|  1024 bits |  60.3 ns |  47.3 ns |  41.6 ns |  49.8 ns |   45.4 ns |  34.6 ns |  60.0 ns |  50.2 ns |  37.4 ns |
+|  4096 bits | 224.1 ns |  98.7 ns |  96.8 ns |  98.0 ns |  106.6 ns |  52.2 ns | 107.6 ns |  78.6 ns |  67.1 ns |
+| 32768 bits |          | 576.9 ns | 568.0 ns | 580.6 ns |  575.9 ns | 227.3 ns | 611.8 ns | 399.0 ns | 375.4 ns |
 
-mul/64bits/uint         time:   [3.3255 ns 3.3284 ns 3.3317 ns]
-mul/64bits/num          time:   [37.978 ns 38.297 ns 38.572 ns]
-mul/64bits/num_svec     time:   [13.632 ns 13.644 ns 13.657 ns]
-mul/64bits/rug          time:   [23.400 ns 23.478 ns 23.559 ns]
-mul/64bits/ramp         time:   [56.899 ns 56.932 ns 56.970 ns]
+|    adda    |   uint   |   num    |   unum   | num_svec | unum_svec |   rug    |   ramp   |   ibig   |   ubig   |
+|------------| -------: | -------: | -------: | -------: | --------: | -------: | -------: | -------: | -------: |
+|    64 bits |   1.1 ns |  33.0 ns |  23.1 ns |  23.5 ns |    6.7 ns |  11.2 ns |  12.2 ns |  20.3 ns |  16.2 ns |
+|   128 bits |   1.4 ns |  33.9 ns |  24.3 ns |  30.2 ns |   17.9 ns |  11.7 ns |  12.9 ns |  27.1 ns |  18.3 ns |
+|  1024 bits |  57.8 ns |  41.1 ns |  35.8 ns |  40.0 ns |   37.3 ns |  17.2 ns |  22.9 ns |  34.0 ns |  23.2 ns |
+|  4096 bits | 236.7 ns |  75.2 ns |  79.7 ns |  76.1 ns |   79.1 ns |  34.6 ns |  65.0 ns |  58.1 ns |  46.2 ns |
+| 32768 bits |          | 372.7 ns | 412.5 ns | 380.2 ns |  400.2 ns | 179.4 ns | 445.3 ns | 284.2 ns | 265.3 ns |
 
-mul/128/uint            time:   [10.143 ns 10.162 ns 10.182 ns]
-mul/128/num             time:   [39.266 ns 39.618 ns 39.947 ns]
-mul/128/num_svec        time:   [46.277 ns 46.320 ns 46.370 ns]
-mul/128/rug             time:   [24.413 ns 24.459 ns 24.505 ns]
-mul/128/ramp            time:   [33.602 ns 33.848 ns 34.095 ns]
+|    shra    |   uint   |   num    |   unum   | num_svec | unum_svec |   rug    |   ramp   |   ibig   |   ubig   |
+|------------| -------: | -------: | -------: | -------: | --------: | -------: | -------: | -------: | -------: |
+|    64 bits |   1.2 ns |  15.8 ns |  14.3 ns |  11.7 ns |    5.9 ns |   9.5 ns |   6.2 ns |  19.4 ns |   8.7 ns |
+|   128 bits |   1.8 ns |  15.3 ns |  13.8 ns |  12.0 ns |    6.4 ns |   9.6 ns |   8.0 ns |  40.6 ns |  19.5 ns |
+|  1024 bits |  11.2 ns |  23.6 ns |  24.1 ns |  17.8 ns |   13.0 ns |  13.5 ns |  14.7 ns |  44.3 ns |  23.0 ns |
+|  4096 bits |  70.6 ns |  56.9 ns |  54.9 ns |  48.1 ns |   43.6 ns |  26.1 ns |  35.8 ns |  78.6 ns |  57.1 ns |
+| 32768 bits |          | 273.1 ns | 259.5 ns | 259.1 ns |  252.4 ns | 179.8 ns | 222.9 ns | 375.0 ns | 344.6 ns |
 
-mul/1024/uint           time:   [90.948 ns 91.055 ns 91.173 ns]
-mul/1024/num            time:   [258.95 ns 259.29 ns 259.65 ns]
-mul/1024/num_svec       time:   [255.34 ns 255.43 ns 255.52 ns]
-mul/1024/rug            time:   [156.35 ns 156.51 ns 156.69 ns]
-mul/1024/ramp           time:   [220.17 ns 220.40 ns 220.62 ns]
+|    cmp     |   uint   |   num    |   unum   | num_svec | unum_svec |   rug    |   ramp   |   ibig   |   ubig   |
+|------------| -------: | -------: | -------: | -------: | --------: | -------: | -------: | -------: | -------: |
+|    64 bits |   1.4 ns |   6.9 ns |   2.0 ns |   7.3 ns |    1.9 ns |   5.0 ns |   6.8 ns |   7.2 ns |   2.0 ns |
+|   128 bits |   1.8 ns |   6.9 ns |   1.9 ns |   7.2 ns |    1.8 ns |   5.0 ns |   6.7 ns |   7.4 ns |   2.2 ns |
+|  1024 bits |   1.9 ns |   7.6 ns |   3.6 ns |   8.0 ns |    3.9 ns |   5.1 ns |   7.0 ns |   8.0 ns |   2.9 ns |
+|  4096 bits |   3.0 ns |   7.9 ns |   4.0 ns |   8.2 ns |    4.2 ns |   5.3 ns |   6.9 ns |   7.7 ns |   2.9 ns |
+| 32768 bits |          |   8.7 ns |   7.9 ns |   8.8 ns |    8.1 ns |   5.9 ns |   6.7 ns |   8.2 ns |   3.8 ns |
 
-mul/4096/uint           time:   [268.20 ns 268.51 ns 268.78 ns]
-mul/4096/num            time:   [2.9871 us 2.9885 us 2.9900 us]
-mul/4096/num_svec       time:   [2.9832 us 2.9845 us 2.9858 us]
-mul/4096/rug            time:   [1.3917 us 1.3927 us 1.3938 us]
-mul/4096/ramp           time:   [2.2199 us 2.2210 us 2.2222 us]
-
-mul/32768/num           time:   [95.620 us 95.688 us 95.765 us]
-mul/32768/num_svec      time:   [79.814 us 79.844 us 79.880 us]
-mul/32768/rug           time:   [31.553 us 31.576 us 31.601 us]
-mul/32768/ramp          time:   [62.363 us 62.385 us 62.410 us]
-
-mut/64bits/num          time:   [39.178 ns 39.348 ns 39.530 ns]
-mut/64bits/num_svec     time:   [14.697 ns 14.706 ns 14.716 ns]
-mut/64bits/rug_mut      time:   [6.6020 ns 6.6073 ns 6.6125 ns]
-mut/64bits/ramp         time:   [44.348 ns 44.455 ns 44.559 ns]
-
-mut/128/num             time:   [46.580 ns 46.824 ns 47.054 ns]
-mut/128/num_svec        time:   [54.009 ns 54.025 ns 54.042 ns]
-mut/128/rug_mut         time:   [10.207 ns 10.245 ns 10.300 ns]
-mut/128/ramp            time:   [41.280 ns 41.346 ns 41.417 ns]
-
-mut/1024/num            time:   [291.54 ns 291.69 ns 291.87 ns]
-mut/1024/num_svec       time:   [298.84 ns 299.00 ns 299.14 ns]
-mut/1024/rug_mut        time:   [202.24 ns 202.40 ns 202.57 ns]
-mut/1024/ramp           time:   [261.74 ns 262.86 ns 263.99 ns]
-
-mut/4096/num            time:   [2.9775 us 2.9786 us 2.9799 us]
-mut/4096/num_svec       time:   [2.9764 us 2.9777 us 2.9791 us]
-mut/4096/rug_mut        time:   [1.4236 us 1.4260 us 1.4305 us]
-mut/4096/ramp           time:   [2.2458 us 2.2471 us 2.2485 us]
-
-mut/32768/num           time:   [94.800 us 94.860 us 94.928 us]
-mut/32768/num_svec      time:   [79.705 us 79.734 us 79.769 us]
-mut/32768/rug_mut       time:   [31.647 us 31.707 us 31.771 us]
-mut/32768/ramp          time:   [62.335 us 62.362 us 62.392 us]
-
-div/64bits/uint         time:   [3.3311 ns 3.3349 ns 3.3389 ns]
-div/64bits/num          time:   [60.101 ns 60.218 ns 60.336 ns]
-div/64bits/num_svec     time:   [43.590 ns 43.684 ns 43.773 ns]
-div/64bits/rug          time:   [36.470 ns 36.505 ns 36.545 ns]
-div/64bits/ramp         time:   [41.111 ns 41.145 ns 41.182 ns]
-
-div/128/uint            time:   [10.382 ns 10.390 ns 10.399 ns]
-div/128/num             time:   [93.616 ns 93.653 ns 93.693 ns]
-div/128/num_svec        time:   [66.427 ns 66.456 ns 66.486 ns]
-div/128/rug             time:   [43.157 ns 43.383 ns 43.729 ns]
-div/128/ramp            time:   [83.928 ns 84.038 ns 84.156 ns]
-
-div/1024/uint           time:   [93.123 ns 93.190 ns 93.262 ns]
-div/1024/num            time:   [120.27 ns 120.88 ns 121.63 ns]
-div/1024/num_svec       time:   [115.46 ns 115.55 ns 115.63 ns]
-div/1024/rug            time:   [58.831 ns 58.911 ns 58.998 ns]
-div/1024/ramp           time:   [151.52 ns 152.33 ns 153.15 ns]
-
-div/4096/uint           time:   [255.86 ns 256.26 ns 256.68 ns]
-div/4096/num            time:   [211.45 ns 212.72 ns 213.94 ns]
-div/4096/num_svec       time:   [197.01 ns 199.07 ns 201.19 ns]
-div/4096/rug            time:   [64.941 ns 65.050 ns 65.179 ns]
-div/4096/ramp           time:   [221.87 ns 223.27 ns 224.67 ns]
-
-div/32768/num           time:   [962.90 ns 974.80 ns 985.34 ns]
-div/32768/num_svec      time:   [930.44 ns 944.33 ns 956.80 ns]
-div/32768/rug           time:   [68.619 ns 68.770 ns 68.933 ns]
-div/32768/ramp          time:   [702.18 ns 703.69 ns 705.00 ns]
-
-add/64bits/uint         time:   [3.1345 ns 3.1379 ns 3.1417 ns]
-add/64bits/num          time:   [49.607 ns 49.631 ns 49.653 ns]
-add/64bits/num_svec     time:   [27.780 ns 27.862 ns 27.953 ns]
-add/64bits/rug          time:   [33.313 ns 33.347 ns 33.384 ns]
-add/64bits/ramp         time:   [48.566 ns 48.596 ns 48.629 ns]
-
-add/128/uint            time:   [10.481 ns 10.490 ns 10.498 ns]
-add/128/num             time:   [56.595 ns 56.630 ns 56.669 ns]
-add/128/num_svec        time:   [35.341 ns 35.356 ns 35.371 ns]
-add/128/rug             time:   [33.997 ns 34.034 ns 34.073 ns]
-add/128/ramp            time:   [51.682 ns 51.817 ns 51.937 ns]
-
-add/1024/uint           time:   [95.093 ns 95.200 ns 95.325 ns]
-add/1024/num            time:   [60.204 ns 60.281 ns 60.350 ns]
-add/1024/num_svec       time:   [61.536 ns 61.636 ns 61.730 ns]
-add/1024/rug            time:   [37.344 ns 37.386 ns 37.430 ns]
-add/1024/ramp           time:   [63.286 ns 63.331 ns 63.382 ns]
-
-add/4096/uint           time:   [270.35 ns 270.74 ns 271.12 ns]
-add/4096/num            time:   [104.19 ns 108.85 ns 112.88 ns]
-add/4096/num_svec       time:   [106.84 ns 111.63 ns 115.75 ns]
-add/4096/rug            time:   [54.905 ns 54.989 ns 55.070 ns]
-add/4096/ramp           time:   [111.79 ns 111.99 ns 112.20 ns]
-
-add/32768/num           time:   [550.76 ns 592.63 ns 629.03 ns]
-add/32768/num_svec      time:   [551.18 ns 590.90 ns 625.08 ns]
-add/32768/rug           time:   [236.60 ns 237.29 ns 238.03 ns]
-add/32768/ramp          time:   [632.44 ns 633.25 ns 634.09 ns]
-
-clone/64bits/uint       time:   [3.3028 ns 3.3053 ns 3.3079 ns]
-clone/64bits/num        time:   [19.721 ns 19.740 ns 19.759 ns]
-clone/64bits/num_svec   time:   [10.345 ns 10.352 ns 10.359 ns]
-clone/64bits/rug        time:   [17.457 ns 17.470 ns 17.484 ns]
-clone/64bits/ramp       time:   [25.881 ns 25.979 ns 26.076 ns]
-
-clone/128/uint          time:   [10.379 ns 10.388 ns 10.397 ns]
-clone/128/num           time:   [19.494 ns 19.505 ns 19.517 ns]
-clone/128/num_svec      time:   [10.324 ns 10.331 ns 10.337 ns]
-clone/128/rug           time:   [18.230 ns 18.262 ns 18.293 ns]
-clone/128/ramp          time:   [30.110 ns 30.165 ns 30.220 ns]
-
-clone/1024/uint         time:   [94.849 ns 94.935 ns 95.029 ns]
-clone/1024/num          time:   [24.036 ns 24.236 ns 24.417 ns]
-clone/1024/num_svec     time:   [24.899 ns 25.128 ns 25.335 ns]
-clone/1024/rug          time:   [22.149 ns 22.187 ns 22.220 ns]
-clone/1024/ramp         time:   [29.393 ns 29.475 ns 29.555 ns]
-
-clone/4096/uint         time:   [269.13 ns 269.46 ns 269.78 ns]
-clone/4096/num          time:   [56.909 ns 62.068 ns 66.558 ns]
-clone/4096/num_svec     time:   [56.704 ns 61.871 ns 66.383 ns]
-clone/4096/rug          time:   [32.764 ns 32.846 ns 32.914 ns]
-clone/4096/ramp         time:   [41.951 ns 42.028 ns 42.109 ns]
-
-clone/32768/num         time:   [278.39 ns 304.92 ns 327.48 ns]
-clone/32768/num_svec    time:   [272.20 ns 298.19 ns 320.18 ns]
-clone/32768/rug         time:   [140.52 ns 140.92 ns 141.29 ns]
-clone/32768/ramp        time:   [183.62 ns 184.21 ns 184.82 ns]
-```
+|   clone    |   uint   |   num    |   unum   | num_svec | unum_svec |   rug    |   ramp   |   ibig   |   ubig   |
+|------------| -------: | -------: | -------: | -------: | --------: | -------: | -------: | -------: | -------: |
+|    64 bits |   1.4 ns |  14.7 ns |  14.1 ns |   3.2 ns |    2.5 ns |  16.8 ns |  21.5 ns |   7.5 ns |   6.2 ns |
+|   128 bits |   1.3 ns |  16.8 ns |  17.1 ns |   3.3 ns |    2.3 ns |  16.8 ns |  25.4 ns |  24.5 ns |  22.9 ns |
+|  1024 bits |   5.1 ns |  17.0 ns |  16.4 ns |  17.6 ns |   17.0 ns |  19.5 ns |  25.2 ns |  25.5 ns |  24.2 ns |
+|  4096 bits |  16.7 ns |  56.5 ns |  57.0 ns |  60.4 ns |   57.1 ns |  29.0 ns |  38.6 ns |  35.1 ns |  33.7 ns |
+| 32768 bits |          | 304.1 ns | 297.1 ns | 301.7 ns |  305.6 ns | 129.7 ns | 170.2 ns | 136.3 ns | 129.0 ns |
 
 [num]: https://crates.io/crates/num
 [rug]: https://crates.io/crates/rug
