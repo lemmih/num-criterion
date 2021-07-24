@@ -33,37 +33,24 @@ fn main() {
         };
 
         print!("| {:^10} |", bench);
-        for backend in backends.iter() {
-            print!(" {:^width$} |", backend, width = BACKEND_WIDTH);
+        for &bit_size in bit_sizes.iter() {
+            print!(" {:>10} |", format!("{} bits", bit_size));
         }
         println!("");
         print!("|{:-<12}|", '-');
-        for backend in backends.iter() {
-            print!(
-                " {:->width$} |",
-                format!("-:"),
-                width = BACKEND_WIDTH.max(backend.len())
-            );
+        for _ in bit_sizes.iter() {
+            print!(" {:->10} |", format!("-:"),);
         }
         println!("");
 
-        for &bit_size in bit_sizes.iter() {
-            print!("| {:>10} |", format!("{} bits", bit_size));
-
-            for &backend in backends.iter() {
+        for &backend in backends.iter() {
+            print!("| {:>10} |", backend);
+            for &bit_size in bit_sizes.iter() {
                 let key = (bench, backend, bit_size);
                 if let Some(result) = results.get(&key) {
-                    print!(
-                        " {:>width$} |",
-                        pp_duration(*result),
-                        width = BACKEND_WIDTH.max(backend.len())
-                    );
+                    print!(" {:>width$} |", pp_duration(*result), width = 10);
                 } else {
-                    print!(
-                        " {:>width$} |",
-                        ' ',
-                        width = BACKEND_WIDTH.max(backend.len())
-                    );
+                    print!(" {:>width$} |", ' ', width = 10);
                 }
             }
             println!("");
