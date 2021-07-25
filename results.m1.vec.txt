@@ -32,14 +32,14 @@ from_str_radix/08         1.0397 us     1.0359 us
 from_str_radix/10         963.80 ns     963.57 ns
 from_str_radix/16         751.74 ns     774.38 ns  +3%
 from_str_radix/36         707.71 ns     741.26 ns  +5%
-rand/64                   32.397 ns     36.630 ns  +13%
-rand/256                  39.625 ns     40.165 ns
-rand/1009                 74.800 ns     75.577 ns
-rand/2048                 155.92 ns     155.40 ns
-rand/4096                 275.24 ns     276.40 ns
-rand/8192                 489.00 ns     496.88 ns
-rand/65536                3.7968 us     3.8422 us
-rand/131072               7.5341 us     7.6601 us
+rand/64                   32.760 ns     9.7398 ns  -70%
+rand/256                  40.239 ns     41.431 ns
+rand/1009                 75.002 ns     76.360 ns
+rand/2048                 158.62 ns     152.40 ns
+rand/4096                 287.90 ns     277.68 ns
+rand/8192                 489.41 ns     497.36 ns
+rand/65536                3.8297 us     3.8505 ns
+rand/131072               7.5889 us     7.6617 ns
 shl                       587.99 ns     807.60 ns  +37%
 shr                       619.25 ns     664.36 ns
 hash                      78.926 us     85.282 us  +8%
