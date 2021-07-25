@@ -1,56 +1,56 @@
                           Vec           SmallVec
 
-multiply/0                52.782 ns     57.348 ns <- regression
-multiply/1                4.3496 us     4.2955 us
-multiply/2                341.70 us     296.48 us
-multiply/3                750.06 us     680.19 us
-divide/0                  146.82 ns     97.257 ns
-divide/1                  2.1129 us     2.1688 us <- regression
-divide/2                  111.44 us     111.76 us
-divide/big_little         8.6246 us     8.5088 us
-remainder/0               155.70 ns     96.518 ns
-remainder/1               2.1116 us     2.1760 us
-remainder/2               110.79 us     112.18 us
-remainder/big_little      8.4705 us     8.4468 us
-factorial_100             10.277 us     997.81 ns <- 10x faster
-fib/100                   495.98 ns     765.19 ns <- regression
-fib/1000                  8.3119 us     8.8505 us <- regression
-fib/10000                 678.54 us     682.67 us <- regression
-fib2/100                  682.81 ns     1.3861 us <- regression
-fib2/1000                 16.830 us     17.702 us <- regression
-fib2/10000                1.2382 ms     1.3653 ms <- regression
-fib_u128                  206.15 ns     206.04 ns
-fac_to_string             752.73 ns     830.52 ns <- regression
-fib_to_string             191.02 ns     175.26 ns
-to_str_radix/02           2.4083 us     2.4108 us
-to_str_radix/08           916.88 ns     883.99 ns
-to_str_radix/10           2.1041 us     2.2175 us <- regression
-to_str_radix/16           696.90 ns     679.17 ns
-to_str_radix/36           1.7663 us     1.9527 us <- regression
-from_str_radix/02         2.7863 us     2.6953 us
-from_str_radix/08         1.0397 us     1.0409 us
-from_str_radix/10         963.80 ns     1.0085 us <- regression
-from_str_radix/16         751.74 ns     760.73 ns
-from_str_radix/36         707.71 ns     749.68 ns <- regression
-rand/64                   32.397 ns     36.593 ns <- regression
-rand/256                  39.625 ns     40.875 ns
-rand/1009                 74.800 ns     75.965 ns
-rand/2048                 155.92 ns     155.10 ns
-rand/4096                 275.24 ns     277.66 ns
-rand/8192                 489.00 ns     492.41 ns
-rand/65536                3.7968 us     3.8635 us
-rand/131072               7.5341 us     7.5735 us
-shl                       587.99 ns     841.46 ns <- regression
-shr                       619.25 ns     670.90 ns <- regression
-hash                      78.926 us     86.651 us <- regression
-pow_bench                 5.2513 ms     1.6231 ms <- 3x faster
-pow/bigexp                5.3574 ms     1.7192 ms
-pow/1e1000                1.6982 us     1.2997 us
-pow/1e10000               76.419 us     48.322 us
-pow/1e100000              2.7922 ms     1.5859 ms
-pow/modpow                3.7157 ms     4.2756 ms <- regression
-pow/modpow_even           9.9731 ms     10.271 ms
-iters/to_u32_digits       107.54 ns     98.941 ns
-iters/iter_u32_digits     54.500 ns     51.380 ns
-iters/to_u64_digits       81.898 ns     68.669 ns
-iters/iter_u64_digits     43.619 ns     43.963 ns
+multiply/0                52.782 ns     57.520 ns  +9%
+multiply/1                4.3496 us     4.3485 us
+multiply/2                341.70 us     298.71 us  -13%
+multiply/3                750.06 us     689.90 us  -8%
+divide/0                  146.82 ns     94.010 ns  -36%
+divide/1                  2.1129 us     2.0797 us
+divide/2                  111.44 us     111.72 us
+divide/big_little         8.6246 us     8.4556 us
+remainder/0               155.70 ns     94.360 ns  -39%
+remainder/1               2.1116 us     2.0971 us
+remainder/2               110.79 us     111.83 us
+remainder/big_little      8.4705 us     8.4480 us
+factorial_100             10.277 us     1.0051 us  -90%
+fib/100                   495.98 ns     433.14 ns  -12%
+fib/1000                  8.3119 us     8.3417 us
+fib/10000                 678.54 us     688.81 us
+fib2/100                  682.81 ns     694.29 ns
+fib2/1000                 16.830 us     16.567 us
+fib2/10000                1.2382 ms     1.2885 ms
+fib_u128                  206.15 ns     209.58 ns
+fac_to_string             752.73 ns     719.81 ns  -4%
+fib_to_string             191.02 ns     189.65 ns
+to_str_radix/02           2.4083 us     2.4122 us
+to_str_radix/08           916.88 ns     889.40 ns
+to_str_radix/10           2.1041 us     2.0560 us
+to_str_radix/16           696.90 ns     667.76 ns
+to_str_radix/36           1.7663 us     1.7375 us
+from_str_radix/02         2.7863 us     2.6998 us
+from_str_radix/08         1.0397 us     1.0359 us
+from_str_radix/10         963.80 ns     963.57 ns
+from_str_radix/16         751.74 ns     774.38 ns  +3%
+from_str_radix/36         707.71 ns     741.26 ns  +5%
+rand/64                   32.397 ns     36.630 ns  +13%
+rand/256                  39.625 ns     40.165 ns
+rand/1009                 74.800 ns     75.577 ns
+rand/2048                 155.92 ns     155.40 ns
+rand/4096                 275.24 ns     276.40 ns
+rand/8192                 489.00 ns     496.88 ns
+rand/65536                3.7968 us     3.8422 us
+rand/131072               7.5341 us     7.6601 us
+shl                       587.99 ns     807.60 ns  +37%
+shr                       619.25 ns     664.36 ns
+hash                      78.926 us     85.282 us  +8%
+pow_bench                 5.2513 ms     1.7222 ms  -67%
+pow/bigexp                5.3574 ms     1.6891 ms  -68%
+pow/1e1000                1.6982 us     1.2626 us  -26%
+pow/1e10000               76.419 us     47.578 us  -38%
+pow/1e100000              2.7922 ms     1.5855 ms  -43%
+pow/modpow                3.7157 ms     4.2673 ms  +15%
+pow/modpow_even           9.9731 ms     10.252 ms
+iters/to_u32_digits       107.54 ns     98.128 ns
+iters/iter_u32_digits     54.500 ns     51.758 ns
+iters/to_u64_digits       81.898 ns     68.720 ns  -16%
+iters/iter_u64_digits     43.619 ns     43.172 ns
