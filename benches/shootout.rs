@@ -240,7 +240,7 @@ fn bigint<X>(
     bits: u64,
     run: impl Fn(&BigInt, &BigInt) -> X,
 ) {
-    bigint_mut(group, bits, move |x, y| run( &*x, y))
+    bigint_mut(group, bits, move |x, y| run(&*x, y))
 }
 
 fn bigint_mut<X>(
@@ -264,7 +264,7 @@ fn biguint<X>(
     bits: u64,
     run: impl Fn(&BigUint, &BigUint) -> X,
 ) {
-    biguint_mut(group, bits, |x,y| run(&*x,y))
+    biguint_mut(group, bits, |x, y| run(&*x, y))
 }
 
 fn biguint_mut<X>(
@@ -290,7 +290,7 @@ fn smallint<X>(
     bits: u64,
     run: impl Fn(&BigIntSmall, &BigIntSmall) -> X,
 ) {
-    smallint_mut(group, bits, |x,y| run(&*x,y))
+    smallint_mut(group, bits, |x, y| run(&*x, y))
 }
 
 #[cfg(feature = "num-bigint-small")]
@@ -317,7 +317,7 @@ fn smalluint<X>(
     bits: u64,
     run: impl Fn(&BigUintSmall, &BigUintSmall) -> X,
 ) {
-    smalluint_mut(group, bits, |x,y| run(&*x,y))
+    smalluint_mut(group, bits, |x, y| run(&*x, y))
 }
 
 #[cfg(feature = "num-bigint-small")]
@@ -344,7 +344,7 @@ fn rug<X>(
     bits: u64,
     run: impl Fn(&RugInteger, &RugInteger) -> X,
 ) {
-    rug_mut(group, bits, |x,y| run(&*x,y))
+    rug_mut(group, bits, |x, y| run(&*x, y))
 }
 
 #[cfg(feature = "rug")]
@@ -375,7 +375,7 @@ fn ramp<X>(
     bits: u64,
     run: impl Fn(&RampInt, &RampInt) -> X,
 ) {
-    ramp_mut(group, bits, |x,y| run(&*x,y))
+    ramp_mut(group, bits, |x, y| run(&*x, y))
 }
 
 #[cfg(feature = "ramp")]
@@ -401,12 +401,8 @@ fn ramp_mut<X>(
 }
 
 #[cfg(feature = "ibig")]
-fn ibig<X>(
-    group: &mut BenchmarkGroup<'_, WallTime>,
-    bits: u64,
-    run: impl Fn(&IBig, &IBig) -> X,
-) {
-    ibig_mut(group, bits, |x, y| run(&*x,y))
+fn ibig<X>(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64, run: impl Fn(&IBig, &IBig) -> X) {
+    ibig_mut(group, bits, |x, y| run(&*x, y))
 }
 
 #[cfg(feature = "ibig")]
@@ -432,12 +428,8 @@ fn ibig_mut<X>(
 }
 
 #[cfg(feature = "ibig")]
-fn ubig<X>(
-    group: &mut BenchmarkGroup<'_, WallTime>,
-    bits: u64,
-    run: impl Fn(&UBig, &UBig) -> X,
-) {
-    ubig_mut(group, bits, |x, y| run(&*x,y))
+fn ubig<X>(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64, run: impl Fn(&UBig, &UBig) -> X) {
+    ubig_mut(group, bits, |x, y| run(&*x, y))
 }
 
 #[cfg(feature = "ibig")]
