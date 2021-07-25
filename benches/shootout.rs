@@ -592,6 +592,34 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     );
 }
 
+fn decimal_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
+    bench!( group, bits,
+        uint         => | x, _y | format!("{}", x)
+        bigint       => | x, _y | format!("{}", x)
+        biguint      => | x, _y | format!("{}", x)
+        bigint_svec  => | x, _y | format!("{}", x)
+        biguint_svec => | x, _y | format!("{}", x)
+        rug          => | x, _y | format!("{}", x)
+        ramp         => | x, _y | format!("{}", x)
+        ibig         => | x, _y | format!("{}", x)
+        ubig         => | x, _y | format!("{}", x)
+    );
+}
+
+fn hex_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
+    bench!( group, bits,
+        uint         => | x, _y | format!("{:x}", x)
+        bigint       => | x, _y | format!("{:x}", x)
+        biguint      => | x, _y | format!("{:x}", x)
+        bigint_svec  => | x, _y | format!("{:x}", x)
+        biguint_svec => | x, _y | format!("{:x}", x)
+        rug          => | x, _y | format!("{:x}", x)
+        ramp         => | x, _y | format!("{:x}", x)
+        ibig         => | x, _y | format!("{:x}", x)
+        ubig         => | x, _y | format!("{:x}", x)
+    );
+}
+
 fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     bench!( group, bits,
         uint         => | x, y | x.checked_mul(*y)
@@ -711,6 +739,8 @@ fn shra_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
 
 fn benchmarks(c: &mut Criterion) {
     mk_benchmark(c, "gcd", gcd_group);
+    mk_benchmark(c, "to_dec", decimal_group);
+    mk_benchmark(c, "to_hex", hex_group);
     mk_benchmark(c, "mul", mul_group);
     mk_benchmark(c, "mula", mula_group);
     mk_benchmark(c, "div", div_group);
