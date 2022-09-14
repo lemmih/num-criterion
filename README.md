@@ -10,7 +10,7 @@ Benchmarking arbitrary precision number crates for Rust.
 | [dashu](https://crates.io/crates/dashu)               | 0.1.0   | Pure Rust, no_std                                      |
 | [malachite-nz](https://crates.io/crates/malachite-nz) | 0.2.6   | Pure Rust, LGPL, derived from GMP and FLINT            |
 | [num-bigint](https://crates.io/crates/num-bigint)     | 0.4.3   | Pure Rust, no_std                                      |
-| [ramp](https://crates.io/crates/ramp)                 | 0.7.0   | Requires nightly Rust, uses x86_64 assembly            |
+| [ramp](https://crates.io/crates/ramp)                 | 0.7.0   | Requires nightly Rust, uses x86_64 assembly, not maintained            |
 | [uint](https://crates.io/crates/uint)                 | 0.9.3   | Fixed precision, not arbitrary precision               |
 
 

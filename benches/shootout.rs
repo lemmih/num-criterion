@@ -13,6 +13,7 @@ use num_bigint::{BigInt, BigUint};
 
 use num_integer::Integer;
 use std::ops::*;
+use std::str::FromStr;
 
 #[cfg(feature = "uint")]
 use uint::construct_uint;
@@ -25,6 +26,9 @@ use ramp::int::Int as RampInt;
 
 #[cfg(feature = "ibig")]
 use ibig::{IBig, UBig};
+
+#[cfg(feature = "dashu")]
+use dashu::{self};
 
 mod rng;
 // use rand::RngCore;
@@ -167,26 +171,6 @@ fn fast_gcd_u128(mut m: u128, mut n: u128) -> u128 {
     m << shift
 }
 
-#[cfg(feature = "rug")]
-fn bigint_to_rug(big: BigInt) -> RugInteger {
-    RugInteger::from_str_radix(&big.to_str_radix(16), 16).unwrap()
-}
-
-#[cfg(feature = "ramp")]
-fn bigint_to_ramp(big: BigInt) -> RampInt {
-    RampInt::from_str_radix(&big.to_str_radix(16), 16).unwrap()
-}
-
-#[cfg(feature = "ibig")]
-fn bigint_to_ibig(big: BigInt) -> IBig {
-    IBig::from_str_radix(&big.to_str_radix(16), 16).unwrap()
-}
-
-#[cfg(feature = "ibig")]
-fn biguint_to_ubig(big: BigUint) -> UBig {
-    UBig::from_str_radix(&big.to_str_radix(16), 16).unwrap()
-}
-
 // Copied from num-integer.
 #[cfg(feature = "ibig")]
 fn gcd_ubig(m: &UBig, n: &UBig) -> UBig {
@@ -256,16 +240,7 @@ fn biguint_mut<X>(
     bits: u64,
     run: impl Fn(&mut BigUint, &BigUint) -> X,
 ) {
-    use num_bigint::RandBigInt;
-    group.bench_function("unum", |b| {
-        let mut rng = get_rng();
-
-        b.iter_batched_ref(
-            || (rng.gen_biguint(bits), rng.gen_biguint(bits)),
-            |(x, y)| run(x, y),
-            BatchSize::SmallInput,
-        )
-    });
+    readable_unsigned_mut("unum", group, bits, run)
 }
 
 #[cfg(feature = "rug")]
@@ -283,20 +258,25 @@ fn rug_mut<X>(
     bits: u64,
     run: impl Fn(&mut RugInteger, &RugInteger) -> X,
 ) {
-    use num_bigint::RandBigInt;
-    group.bench_function("rug", |b| {
-        let mut rng = get_rng();
-        b.iter_batched_ref(
-            || {
-                (
-                    bigint_to_rug(rng.gen_bigint(bits)),
-                    bigint_to_rug(rng.gen_bigint(bits)),
-                )
-            },
-            |(x, y)| run(x, y),
-            BatchSize::SmallInput,
-        )
-    });
+    readable_signed_mut("rug", group, bits, run)
+}
+
+#[cfg(feature = "rug")]
+fn urug<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&RugInteger, &RugInteger) -> X,
+) {
+    urug_mut(group, bits, |x, y| run(&*x, y))
+}
+
+#[cfg(feature = "rug")]
+fn urug_mut<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&mut RugInteger, &RugInteger) -> X,
+) {
+    readable_unsigned_mut("urug", group, bits, run)
 }
 
 #[cfg(feature = "ramp")]
@@ -314,20 +294,25 @@ fn ramp_mut<X>(
     bits: u64,
     run: impl Fn(&mut RampInt, &RampInt) -> X,
 ) {
-    use num_bigint::RandBigInt;
-    group.bench_function("ramp", |b| {
-        let mut rng = get_rng();
-        b.iter_batched_ref(
-            || {
-                (
-                    bigint_to_ramp(rng.gen_bigint(bits)),
-                    bigint_to_ramp(rng.gen_bigint(bits)),
-                )
-            },
-            |(x, y)| run(x, y),
-            BatchSize::SmallInput,
-        )
-    });
+    readable_signed_mut("ramp", group, bits, run)
+}
+
+#[cfg(feature = "ramp")]
+fn uramp<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&RampInt, &RampInt) -> X,
+) {
+    uramp_mut(group, bits, |x, y| run(&*x, y))
+}
+
+#[cfg(feature = "ramp")]
+fn uramp_mut<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&mut RampInt, &RampInt) -> X,
+) {
+    readable_unsigned_mut("uramp", group, bits, run)
 }
 
 #[cfg(feature = "ibig")]
@@ -341,20 +326,7 @@ fn ibig_mut<X>(
     bits: u64,
     run: impl Fn(&mut IBig, &IBig) -> X,
 ) {
-    use num_bigint::RandBigInt;
-    group.bench_function("ibig", |b| {
-        let mut rng = get_rng();
-        b.iter_batched_ref(
-            || {
-                (
-                    bigint_to_ibig(rng.gen_bigint(bits)),
-                    bigint_to_ibig(rng.gen_bigint(bits)),
-                )
-            },
-            |(x, y)| run(x, y),
-            BatchSize::SmallInput,
-        )
-    });
+    readable_signed_mut("ibig", group, bits, run)
 }
 
 #[cfg(feature = "ibig")]
@@ -368,14 +340,87 @@ fn ubig_mut<X>(
     bits: u64,
     run: impl Fn(&mut UBig, &UBig) -> X,
 ) {
+    readable_unsigned_mut("ubig", group, bits, run)
+}
+
+#[cfg(feature = "dashu")]
+fn dashu_integer<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&dashu::Integer, &dashu::Integer) -> X,
+) {
+    readable_signed_mut::<dashu::Integer, X>("idashu", group, bits, |x, y| run(&*x, y))
+}
+
+#[cfg(feature = "dashu")]
+fn dashu_mut_integer<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&mut dashu::Integer, &dashu::Integer) -> X,
+) {
+    readable_signed_mut::<dashu::Integer, X>("idashu", group, bits, run)
+}
+
+#[cfg(feature = "dashu")]
+fn dashu_natural<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&dashu::Natural, &dashu::Natural) -> X,
+) {
+    readable_unsigned_mut::<dashu::Natural, X>("udashu", group, bits, |x, y| run(&*x, y))
+}
+
+#[cfg(feature = "dashu")]
+fn dashu_mut_natural<X>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&mut dashu::Natural, &dashu::Natural) -> X,
+) {
+    readable_unsigned_mut::<dashu::Natural, X>("udashu", group, bits, run)
+}
+
+fn readable_unsigned_mut<N, X>(
+    name: &str,
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&mut N, &N) -> X,
+) where
+    N: FromStr,
+    <N as FromStr>::Err: std::fmt::Debug,
+{
     use num_bigint::RandBigInt;
-    group.bench_function("ubig", |b| {
+    group.bench_function(name, |b| {
         let mut rng = get_rng();
         b.iter_batched_ref(
             || {
                 (
-                    biguint_to_ubig(rng.gen_biguint(bits)),
-                    biguint_to_ubig(rng.gen_biguint(bits)),
+                    N::from_str(&rng.gen_biguint(bits).to_string()).unwrap(),
+                    N::from_str(&rng.gen_biguint(bits).to_string()).unwrap(),
+                )
+            },
+            |(x, y)| run(x, y),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
+fn readable_signed_mut<N, X>(
+    name: &str,
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    bits: u64,
+    run: impl Fn(&mut N, &N) -> X,
+) where
+    N: FromStr,
+    <N as FromStr>::Err: std::fmt::Debug,
+{
+    use num_bigint::RandBigInt;
+    group.bench_function(name, |b| {
+        let mut rng = get_rng();
+        b.iter_batched_ref(
+            || {
+                (
+                    N::from_str(&rng.gen_bigint(bits).to_string()).unwrap(),
+                    N::from_str(&rng.gen_bigint(bits).to_string()).unwrap(),
                 )
             },
             |(x, y)| run(x, y),
@@ -398,9 +443,17 @@ macro_rules! bench_single {
         #[cfg(feature = "rug")]
         rug($group, $bits, $run);
     };
+    ( $group:ident, $bits:ident, urug => $run: expr ) => {
+        #[cfg(feature = "rug")]
+        urug($group, $bits, $run);
+    };
     ( $group:ident, $bits:ident, ramp => $run: expr ) => {
         #[cfg(feature = "ramp")]
         ramp($group, $bits, $run);
+    };
+    ( $group:ident, $bits:ident, uramp => $run: expr ) => {
+        #[cfg(feature = "ramp")]
+        uramp($group, $bits, $run);
     };
     ( $group:ident, $bits:ident, ibig => $run: expr ) => {
         #[cfg(feature = "ibig")]
@@ -409,6 +462,14 @@ macro_rules! bench_single {
     ( $group:ident, $bits:ident, ubig => $run: expr ) => {
         #[cfg(feature = "ibig")]
         ubig($group, $bits, $run);
+    };
+    ( $group:ident, $bits:ident, dashu => $run: expr ) => {
+        #[cfg(feature = "dashu")]
+        dashu_integer($group, $bits, $run);
+    };
+    ( $group:ident, $bits:ident, udashu => $run: expr ) => {
+        #[cfg(feature = "dashu")]
+        dashu_natural($group, $bits, $run);
     };
 }
 
@@ -432,6 +493,10 @@ macro_rules! bench_mut_single {
         #[cfg(feature = "rug")]
         rug_mut($group, $bits, $run);
     };
+    ( $group:ident, $bits:ident, urug => $run: expr ) => {
+        #[cfg(feature = "rug")]
+        urug_mut($group, $bits, $run);
+    };
     ( $group:ident, $bits:ident, ramp => $run: expr ) => {
         #[cfg(feature = "ramp")]
         ramp_mut($group, $bits, $run);
@@ -443,6 +508,14 @@ macro_rules! bench_mut_single {
     ( $group:ident, $bits:ident, ubig => $run: expr ) => {
         #[cfg(feature = "ibig")]
         ubig_mut($group, $bits, $run);
+    };
+    ( $group:ident, $bits:ident, dashu => $run: expr ) => {
+        #[cfg(feature = "dashu")]
+        dashu_mut_integer($group, $bits, $run);
+    };
+    ( $group:ident, $bits:ident, udashu => $run: expr ) => {
+        #[cfg(feature = "dashu")]
+        dashu_mut_natural($group, $bits, $run);
     };
 }
 
@@ -498,10 +571,11 @@ fn gcd_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
     }
 
     bench!( group, bits,
-        bigint      => | x, y | x.gcd(y)
-        rug         => | x, y | RugInteger::from(x.gcd_ref(y))
-        ramp        => | x, y | x.gcd(y)
+        urug        => | x, y | RugInteger::from(x.gcd_ref(y))
+        udashu      => | x, y | { use dashu::base::Gcd; x.gcd(y) }
         ubig        => | x, y | gcd_ubig(x,y)
+        uramp       => | x, y | x.gcd(y)
+        biguint     => | x, y | x.gcd(y)
     );
 }
 
@@ -511,9 +585,12 @@ fn decimal_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, _y | format!("{}", x)
         biguint      => | x, _y | format!("{}", x)
         rug          => | x, _y | format!("{}", x)
+        urug         => | x, _y | format!("{}", x)
         ramp         => | x, _y | format!("{}", x)
         ibig         => | x, _y | format!("{}", x)
         ubig         => | x, _y | format!("{}", x)
+        dashu        => | x, _y | format!("{}", x)
+        udashu       => | x, _y | format!("{}", x)
     );
 }
 
@@ -523,9 +600,12 @@ fn hex_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, _y | format!("{:x}", x)
         biguint      => | x, _y | format!("{:x}", x)
         rug          => | x, _y | format!("{:x}", x)
+        urug         => | x, _y | format!("{:x}", x)
         ramp         => | x, _y | format!("{:x}", x)
         ibig         => | x, _y | format!("{:x}", x)
         ubig         => | x, _y | format!("{:x}", x)
+        dashu        => | x, _y | format!("{:x}", x)
+        udashu       => | x, _y | format!("{:x}", x)
     );
 }
 
@@ -535,9 +615,12 @@ fn mul_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, y | x * y
         biguint      => | x, y | x * y
         rug          => | x, y | RugInteger::from(x * y)
+        urug         => | x, y | RugInteger::from(x * y)
         ramp         => | x, y | x * y
         ibig         => | x, y | x * y
         ubig         => | x, y | x * y
+        dashu        => | x, y | x * y
+        udashu       => | x, y | x * y
     );
 }
 
@@ -547,9 +630,12 @@ fn mula_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, y | x.mul_assign(y)
         biguint      => | x, y | x.mul_assign(y)
         rug          => | x, y | x.mul_assign(y)
+        urug         => | x, y | x.mul_assign(y)
         ramp         => | x, y | x.mul_assign(y)
         ibig         => | x, y | x.mul_assign(y)
         ubig         => | x, y | x.mul_assign(y)
+        dashu        => | x, y | x.mul_assign(y)
+        udashu       => | x, y | x.mul_assign(y)
     );
 }
 
@@ -559,9 +645,12 @@ fn add_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, y | x + y
         biguint      => | x, y | x + y
         rug          => | x, y | RugInteger::from(x + y)
+        urug         => | x, y | RugInteger::from(x + y)
         ramp         => | x, y | x + y
         ibig         => | x, y | x + y
         ubig         => | x, y | x + y
+        dashu        => | x, y | x + y
+        udashu       => | x, y | x + y
     );
 }
 
@@ -571,9 +660,12 @@ fn adda_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, y | *x += y
         biguint      => | x, y | *x += y
         rug          => | x, y | *x += y
+        urug         => | x, y | *x += y
         ramp         => | x, y | *x += y
         ibig         => | x, y | *x += y
         ubig         => | x, y | *x += y
+        dashu        => | x, y | *x += y
+        udashu       => | x, y | *x += y
     );
 }
 
@@ -583,9 +675,12 @@ fn div_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, y | x / y
         biguint      => | x, y | x / y
         rug          => | x, y | RugInteger::from(x / y)
+        urug         => | x, y | RugInteger::from(x / y)
         ramp         => | x, y | x / y
         ibig         => | x, y | x / y
         ubig         => | x, y | x / y
+        dashu        => | x, y | x / y
+        udashu       => | x, y | x / y
     );
 }
 
@@ -595,9 +690,12 @@ fn cmp_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, y | x.cmp(y)
         biguint      => | x, y | x.cmp(y)
         rug          => | x, y | x.cmp(y)
+        urug         => | x, y | x.cmp(y)
         ramp         => | x, y | x.cmp(y)
         ibig         => | x, y | x.cmp(y)
         ubig         => | x, y | x.cmp(y)
+        dashu        => | x, y | x.cmp(y)
+        udashu       => | x, y | x.cmp(y)
     );
 }
 
@@ -607,9 +705,12 @@ fn clone_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, _y | x.clone()
         biguint      => | x, _y | x.clone()
         rug          => | x, _y | x.clone()
+        urug         => | x, _y | x.clone()
         ramp         => | x, _y | x.clone()
         ibig         => | x, _y | x.clone()
         ubig         => | x, _y | x.clone()
+        dashu        => | x, _y | x.clone()
+        udashu       => | x, _y | x.clone()
     );
 }
 
@@ -621,9 +722,12 @@ fn shra_group(group: &mut BenchmarkGroup<'_, WallTime>, bits: u64) {
         bigint       => | x, _y | *x >>= SHIFT
         biguint      => | x, _y | *x >>= SHIFT
         rug          => | x, _y | *x >>= SHIFT
+        urug         => | x, _y | *x >>= SHIFT
         ramp         => | x, _y | *x >>= SHIFT as usize
         ibig         => | x, _y | *x >>= SHIFT as usize
         ubig         => | x, _y | *x >>= SHIFT as usize
+        dashu        => | x, _y | *x >>= SHIFT as usize
+        udashu       => | x, _y | *x >>= SHIFT as usize
     );
 }
 
