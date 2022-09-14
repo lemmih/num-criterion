@@ -99,14 +99,7 @@ type GCD = u64;
 fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
     // min_diff(a,b) = (min(a,b), |a-b|)
     pub fn min_diff(a: GCD, b: GCD) -> (GCD, GCD) {
-        let (t, o) = a.overflowing_sub(b);
-        if o {
-            // a<b
-            (a, !t + 1)
-        } else {
-            // a>b
-            (b, t)
-        }
+        (a.min(b), a.abs_diff(b))
     }
 
     // Use Stein's algorithm
@@ -141,14 +134,7 @@ fn fast_gcd(mut m: GCD, mut n: GCD) -> GCD {
 
 fn fast_gcd_u128(mut m: u128, mut n: u128) -> u128 {
     pub fn min_diff(a: u128, b: u128) -> (u128, u128) {
-        let (t, o) = a.overflowing_sub(b);
-        if o {
-            // a<b
-            (a, !t + 1)
-        } else {
-            // a>b
-            (b, t)
-        }
+        (a.min(b), a.abs_diff(b))
     }
 
     // Use Stein's algorithm
