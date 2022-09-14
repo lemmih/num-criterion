@@ -1,11 +1,18 @@
 # num-criterion
 Benchmarking arbitrary precision number crates for Rust.
 
-## TL;DR
+## Benchmarked crates
 
-There are three major arbitrary-precision number crates: [num], [rug], and [ramp].
+| Library                                               | Version | Notes                                                  |
+| --------------                                        | ------- | ------                                                 |
+| [rug](https://crates.io/crates/rug)                   | 1.17.0  | Links to libc and [GMP](https://gmplib.org/)           |
+| [ibig](https://crates.io/crates/ibig)                 | 0.3.5   | Pure Rust, no_std                                      |
+| [dashu](https://crates.io/crates/dashu)               | 0.1.0   | Pure Rust, no_std                                      |
+| [malachite-nz](https://crates.io/crates/malachite-nz) | 0.2.6   | Pure Rust, LGPL, derived from GMP and FLINT            |
+| [num-bigint](https://crates.io/crates/num-bigint)     | 0.4.3   | Pure Rust, no_std                                      |
+| [ramp](https://crates.io/crates/ramp)                 | 0.7.0   | Requires nightly Rust, uses x86_64 assembly            |
+| [uint](https://crates.io/crates/uint)                 | 0.9.3   | Fixed precision, not arbitrary precision               |
 
-`Rug`, which uses the [GMP], is about 10x faster than `num` and `ramp`.
 
 ## Install
 
@@ -23,7 +30,7 @@ There are three major arbitrary-precision number crates: [num], [rug], and [ramp
 
 ```cargo +nightly criterion --features ramp```
 
-# Benchmark results for `num` vs `rug` vs `ramp`:
+# Benchmark results:
 
 ## M1
 
